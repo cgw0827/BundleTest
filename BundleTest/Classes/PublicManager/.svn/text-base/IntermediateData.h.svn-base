@@ -1,0 +1,82 @@
+//
+//  IntermediateData.h
+//  SMSDX
+//
+//  Created by  陈广文 on 13-3-1.
+//
+//
+
+#ifndef __SMSDX__IntermediateData__
+#define __SMSDX__IntermediateData__
+
+#include <iostream>
+#include "BaseData.h"
+#include "cocos2d.h"
+#include "Define.h"
+class IntermediateData :public cocos2d::CCObject{
+//    byte raceType_;                                //比赛类型(0:正规比赛   1：好友切磋   2：天梯赛   3:赌博赛  4:与约翰比赛)
+//    byte trophyType_;                              //杯赛类型
+//    byte raceId_;                                  //比赛编号
+//    NSMutableArray *playerHorseArray_;             //参赛的马匹
+//    NSMutableArray *otherHorseArray_;              //其他参赛的马匹
+//    int isDoubleBonus_;                            //是否是双倍奖金
+//    byte gamblingType_;                            //赌马的类型（0：头名  1：前二  2：前三）
+//    byte gamglingHorseType_;                       //被下注的马的赔率（0：极高   1：高  2：中  3：偏低  4：低   5：极低）
+//    byte numOfOperableHorse_;
+//    byte numOfRunway_;
+//    byte raceRank_;
+//    int gamblingMoney_;                            //赌博的金额
+    
+    CC_SYNTHESIZE(byte, raceType_, RaceType);
+    CC_SYNTHESIZE(byte, trophyType_, TrophyType);
+    CC_SYNTHESIZE(byte, raceId_, RaceId);
+    CC_SYNTHESIZE(cocos2d::CCArray*, playerHorseArray_, PlayerHorseArray);
+    CC_SYNTHESIZE(cocos2d::CCArray*, otherHorseArray_, OtherHorseArray);
+    
+     CC_SYNTHESIZE(byte, gamblingType_, GamblingType);
+     CC_SYNTHESIZE(byte, gamglingHorseType_, GamglingHorseType);
+     CC_SYNTHESIZE(byte, numOfOperableHorse_, NumOfOperableHorse);
+     CC_SYNTHESIZE(byte, numOfRunway_, NumOfRunway);
+     CC_SYNTHESIZE(byte, raceRank_, RaceRank);
+    
+     CC_SYNTHESIZE(int, isDoubleBonus_, IsDoubleBonus);
+     CC_SYNTHESIZE(int, gamblingMoney_, GamblingMoney);
+    
+    
+    static IntermediateData * sharedIntermediateData();
+    static void clearIntermediateData();
+    
+    void addPlayerHorseWithId(int horseId,cocos2d::CCString * name,int stage,CGFloat speed,CGFloat agile,CGFloat power,CGFloat energy,Short1DArray skill,int index,int level);
+    void addOtherHorseWithId(int horseId,cocos2d::CCString * name,int stage,CGFloat speed,CGFloat agile,CGFloat power ,CGFloat energy,Short1DArray  skill,int level);
+    BOOL checkSkill(int skill,Short1DArray skillArray);
+    int getRaceDataIndex();
+    void removeHorseArray();
+    void showPlayerHorseRetainCount();
+    bool init();
+};
+
+//@property (nonatomic, readwrite) byte raceType;
+//@property (nonatomic, readwrite) byte trophyType;
+//@property (nonatomic, readwrite) byte raceId;
+//@property (nonatomic, assign) NSMutableArray *playerHorseArray;
+//@property (nonatomic, assign) NSMutableArray *otherHorseArray;
+//@property (nonatomic, readwrite) byte gamblingType;
+//@property (nonatomic, readwrite) byte gamglingHorseType;
+//@property (nonatomic, readwrite) byte numOfOperableHorse;
+//@property (nonatomic, readwrite) byte numOfRunway;
+//@property (nonatomic, readwrite) byte raceRank;
+//@property (nonatomic, readwrite) int isDoubleBonus;
+//@property (nonatomic, readwrite) int gamblingMoney;
+
+
+//+(IntermediateData *)sharedIntermediateData;
+//+(void)clearIntermediateData;
+//
+//-(void)addPlayerHorseWithId:(int)horseId name:(NSString *)name ageStage:(int)stage speed:(CGFloat)speed agile:(CGFloat)agile power:(CGFloat)power energy:(CGFloat)energy skill:(Short1DArray)skill farmHorseArrayIndex:(int)index level:(int)level;
+//-(void)addOtherHorseWithId:(int)horseId name:(NSString *)name ageStage:(int)stage speed:(CGFloat)speed agile:(CGFloat)agile power:(CGFloat)power energy:(CGFloat)energy skill:(Short1DArray)skill level:(int)level;;
+//-(BOOL)checkSkill:(int)skill skill:(Short1DArray)skillArray;
+//-(int)getRaceDataIndex;
+//-(void)removeHorseArray;
+//-(void)showPlayerHorseRetainCount;
+
+#endif /* defined(__SMSDX__IntermediateData__) */

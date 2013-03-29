@@ -1,0 +1,82 @@
+//
+//  Friend.cpp
+//  SMSDX
+//
+//  Created by  陈广文 on 13-2-28.
+//
+//
+
+#include "Friend.h"
+#include "FarmHorse.h"
+#include "FarmHorseHome.h"
+#include "FarmHome.h"
+#include "FarmTrainingField.h"
+#include "FarmShop.h"
+#include "FarmDecoration.h"
+#include "Define.h"
+USING_NS_CC;
+
+//@implementation Friend
+
+//@synthesize friendFightable;
+//@synthesize isRandomTreasureable;
+
+bool Friend::init()
+{
+//    if (self == [super init]) {
+    Role::init();
+        playerType_ = PLAYERTYPE_FRIEND;
+//    }
+    return true;
+}
+
+
+void Friend::newFarmHorseWithId(int horseId,int age)
+{
+    FarmHorse *horse_ =FarmHorse::horseWithId(horseId,age);
+    horse_ ->setAction(ACT_STAND);
+    horseArray_ ->addObject(horse_);
+}
+
+
+void Friend::newFarmBuildWithId(int buildId,int level,CCPoint pos,int faceto,FarmHorse *horse)
+{
+    FarmBuild *build_ = nil;
+    int data[3] = {2,4,6};
+    switch (buildId) {
+        case FARMBUILDTYPE_HOME:
+            build_ = FarmHome::farmHomeWithId(buildId,level);
+            break;
+        case FARMBUILDTYPE_SHOP:
+            build_ = FarmShop::FarmShopWithId(buildId,level);
+            break;
+        case FARMBUILDTYPE_TRAININGFIELD_SPEED:
+        case FARMBUILDTYPE_TRAININGFIELD_AGILE:
+        case FARMBUILDTYPE_TRAININGFIELD_POWER:
+            build_ = FarmTrainingField::FarmTrainingFieldWithId(buildId,level);
+            for (int i = 0; i < data[level]; i ++) {
+                (FarmTrainingField *)build_ ->setTrainingStateWithIndex(i,SMSDTrainingEmpty);
+            }
+            break;
+        case FARMBUILDTYPE_HORSEHOME:
+            build_ = FarmHorseHome:: FarmHorseHomeWithId(buildId ,level);
+            if (horse) {
+                (FarmHorseHome *)build_-> setHorse(horse);
+            }
+            break;
+    }
+    build_->setFarmNpcTilePos( pos);
+    build_->setFaceTo(faceto);
+    build_-> setAction(ACT_STAND,NO);
+    buildArray_-> addObject(build_);
+}
+
+
+void Friend::newFarmDecorationWithId(int buildId,CCPoint pos,int faceto)
+{
+    FarmDecoration *temp = FarmDecoration:: FarmDecorationWithType(buildId);
+    temp->setFarmNpcTilePos( pos);
+    temp->setFaceTo(faceto);
+    temp-> setAction(ACT_STAND);
+    decorationArray_-> addObject(temp);
+}

@@ -1,0 +1,2159 @@
+//
+//  Player.cpp
+//  SMSDX
+//
+//  Created by  陈广文 on 13-3-1.
+//
+//
+
+#include "Player.h"
+#include "GameTimer.h"
+#include "FarmHorseHome.h"
+#include "FarmHome.h"
+#include "FarmShop.h"
+#include "FarmTrainingField.h"
+#include "FarmHorse.h"
+#include "FarmItem.h"
+#include "FarmDecoration.h"
+#include "MainMission.h"
+#include "FarmDecorationData.h"
+#include "ItemData.h"
+#include "HorseData.h"
+#include "FarmBuildData.h"
+#include "SQLData.h"
+#include "FriendData.h"
+#include "RemoveData.h"
+#include "PlayerData.h"
+#include "MainMission.h"
+#include "DailyMission.h"
+#include "GameTeach.h"
+#include "RaceGameLayer.h"
+#include "GameEvent.h"
+#include "FarmHorseAI.h"
+#include "FarmDecorationData.h"
+#include "SMSDPlayerUpgradeDialog.h"
+#include "SMSDCheckHorseDialog.h"
+#include "FarmScene.h"
+#include "SMSDFarmAlertViewManager.h"
+#include "Achievement.h"
+#include "CountdownTimer.h"
+#include "LocalNotification.h"
+#include "CWAUseIDConverser.h"
+#include "Util.h"
+#include "AttachContentBean.h"
+#include "NetWorkMotionManager.h"
+#include "MatchData.h"
+#include "Constant.h"
+#include "cocos2d.h"
+#define PLAYERLEVELTOTAL              27
+#define qingku 0
+USING_NS_CC;
+//@implementation Player
+//@synthesize  currentExpInSum,needExpInSum;
+//@synthesize maxHorseSqlKey,maxBuildSqlKey,maxDecorationSqlKey;
+//@synthesize isGainNewHorse = isGainNewHorse_;
+//@synthesize newCupIndexes = newCupIndexes_;
+//@synthesize newHorseIndexes = newHorseIndexes_;
+//@synthesize currentLoginDate,previousLoginDate,previousLogoutDate,ladderRank,ladderScore,daysContinuation;
+//@synthesize isPlayerLevelUp = isPlayerLevelUp_;
+//@synthesize versionId = versionId_;
+//@synthesize useItemStr = useItemStr_;
+//@synthesize diamond = diamond_;
+//
+//@synthesize farmMapLevelTotal = farmMapLevelTotal_;
+//@synthesize itemPack = itemPack_;
+//
+//@synthesize isOpenEverydayTip = isOpenEverydayTip_;
+//@synthesize achievement = achievement_;
+//@synthesize horsePackIndex = horsePackIndex_;
+//@synthesize buildPackIndex = buildPackIndex_;
+//@synthesize decorationPackIndex = decorationPackIndex_;
+//@synthesize allHorseExpIncrease = allHorseExpIncrease_;
+//@synthesize allHorseHealthIncrease = allHorseHealthIncrease_;
+//@synthesize allHorseVitalityIncrease = allHorseVitalityIncrease_;
+//@synthesize gameTimer = gameTimer_;
+//@synthesize friendArray = friendArray_;
+//@synthesize removeDataArray = removeDataArray_;
+//@synthesize removeFarmDataArray = removeFarmDataArray_;
+//@synthesize saveHorseArray = saveHorseArray_;
+//@synthesize isTrainingSell = isTrainingSell_;
+
+
+void Player::setPlayerIconId(int playerIconId)
+{
+    if (playerIconId_ != -1 && playerIconId != playerIconId_) {
+        NetWorkMotionManager::sharedNetWorkMotionManager()-> sendUserIconChangeRequestWithIconId(playerIconId);
+    }
+    playerIconId_ = playerIconId;
+}
+void Player::setFarmMapLevel(int farmMapLevel)
+{
+    if (farmMapLevel_ != -1 && farmMapLevel != farmMapLevel_) {
+        NetWorkMotionManager:: sharedNetWorkMotionManager()-> sendFarmExpandRequest();
+    }
+    farmMapLevel_ = farmMapLevel;
+}
+void Player::setName(CCString * name){
+    if (name_ &&!name->isEqual(name_)) {
+        NetWorkMotionManager:: sharedNetWorkMotionManager()->sendUserNameChangeRequestWithName(name);
+    }
+//    name_-> release();
+//    name-> retain();
+//    name_=name;
+    this->setName(name);
+}
+
+CCString *Player::macId(){
+    if (!macId_) {
+//        macId_ =Util::getMacId()->retain();
+        this->setMacId(Util::getMacId());
+        CCLog("macid = %@",macId_);
+    }
+    return macId_;
+}
+#if qingku
+CCString *Player::gameId()
+{
+    if (!gameId_) {
+//        gameId_ ->release();
+//        gameId_ =CCUserDefault:: standardUserDefaults()->objectForKey("userID");
+//        gameId_-> retain();
+        
+        this->setGameId(CCUserDefault::sharedUserDefault()->getStringForKey("userID"));
+    }
+    return gameId_;
+}
+#endif
+
+void Player::setGameId(CCString *gameId){
+//    [gameId_ release];
+//    gameId_ = [gameId retain];
+    this->setGameId(gameid);
+    gameIdNum_ = CWAUseIDConverser::accountKey2Id(gameId_);
+}
+long long Player::gameIdNum(){
+    if (!gameIdNum_ && gameId_) {
+        gameIdNum_ =CWAUseIDConverser::accountKey2Id(gameId_);
+    }
+    return gameIdNum_;
+}
+void Player::setGameIdNum(long long gameIdNum){
+    gameIdNum_ = gameIdNum;
+//    [gameId_ release];
+//    gameId_ = [[CWAUseIDConverser id2AccountKey:gameIdNum_] retain];
+    this->setGameId(CWAUseIDConverser::id2AccountKey(gameIdNum_));
+}
+bool Player::init()
+{
+//    if (self == [super init]) {
+        playerType_ = PLAYERTYPE_PLAYER;
+        
+        friendArray_ = new CCArray;
+        removeDataArray_ = new CCArray;
+        removeFarmDataArray_ = new CCArray;
+        saveHorseArray_ = new CCArray;;
+        
+        buildPack_ = CCArray::createWithCapacity(BUILDPACKNUM);
+        
+        itemPack_ = (Short1DArray)malloc(sizeof(Short1ArrayStruct));
+        initShort1DArray(&itemPack_, ITEMPACKNUM);
+        for (int i = 0, length = itemPack_ -> length; i < length; i ++) {
+            setShort1DArrayValue(&itemPack_, 0, i);
+        }
+        
+        horsePack_ = CCArray::createWithCapacity(HORSEPACKNUM);
+        decorationPack_ = CCArray::createWithCapacity(HORSEPACKNUM);
+        
+        gameTimer_ = GameTimer::sharedGameTimer();
+        
+        horseHaveState_ = (Short1DArray)malloc(sizeof(Short1ArrayStruct));
+        initShort1DArray(&horseHaveState_, HORSEIDTOTAL);
+        
+        achievement_ =new CCDictionary();
+        
+        matchState_ = (Short1DArray)malloc(sizeof(Short1ArrayStruct));
+    initShort1DArray(&matchState_, MatchData::sharedMatchData()->getKeyId() -> length);
+        
+        newCupIndexes_ =new CCArray;
+        newHorseIndexes_ =new CCArray;
+        
+        maxHorseSqlKey = -1;
+        maxBuildSqlKey = -1;
+        maxDecorationSqlKey = -1;
+        
+        farmMapLevel_ = -1;
+        playerIconId_ = -1;
+//    }
+    
+    return true;
+}
+
+
+void Player::newPlayerData()
+{
+    //添加建筑物
+    FarmBuild *build2 = FarmHorseHome::FarmHorseHomeWithId(FARMBUILDTYPE_HORSEHOME,0);
+    buildPack_-> addObject(build2);
+    
+    //添加马
+    FarmHorse *horse_ =FarmHorse::horseWithId(0,0,0);
+    horse_->setAction(ACT_STAND);
+    horse_->setName("爷爷的小马");
+    addHorsePackWithPaixu(horse_);
+    
+    if (debugState == 0) {
+        //        for (int i = 0; i < 65; i ++) {
+        //            setMatchStateWithId(i,1,NO);
+        //        }
+        setMatchStateWithId(0,1,NO);
+    } else {
+        //李总临时修改
+        setMatchStateWithId(0,1,NO);
+        //        for (int i = 0; i < 52; i++) {
+        //            if (i != 51) {
+        //                setMatchStateWithId(i,2,NO);
+        //            }else{
+        //                setMatchStateWithId(i,1,NO);
+        //            }
+        //        }
+        //        MainMission::sharedMainMission()->setMissionId(41);
+        //        MainMission::sharedMainMission()->setMissionState(2);
+        
+        //李总临时修改
+    }
+}
+
+
+
+
+CCArray *Player::itemPackToArray()
+{
+    CCArray *array_ =CCArray::create();
+    for (int i = 0, length = itemPack_ -> length; i < length; i ++) {
+        if (getShort1DArrayValue(&itemPack_, i) > 0) {
+            FarmItem *item_ = FarmItem::farmItemWithId(i);
+            array_->addObject(item_);
+        }
+    }
+    return array_;
+}
+
+
+//
+int Player::getitemWithIndex(int index)
+{
+    int skip = -1;
+    for (int i = 0, length = itemPack_ -> length; i < length; i ++) {
+        if (getShort1DArrayValue(&itemPack_, i) > 0) {
+            skip ++;
+            if (skip == index) {
+                return i;
+            }
+        }
+    }
+    return -1;
+}
+
+
+
+
+Player::~Player()
+{
+    name_->release();
+    name_ = nil;
+    
+    friendArray_->removeAllObjects();
+    friendArray_->release();
+    friendArray_ = nil;
+    
+    horsePack_->removeAllObjects();
+    horsePack_->release();
+    horsePack_ = nil;
+    decorationPack_->removeAllObjects();
+    decorationPack_->release();
+    decorationPack_ = nil;
+    buildPack_-> removeAllObjects();
+    buildPack_ ->release();
+    buildPack_ = nil;
+    removeDataArray_-> removeAllObjects();
+    removeDataArray_-> release();
+    removeDataArray_ = nil;
+    removeFarmDataArray_-> removeAllObjects();
+    removeFarmDataArray_-> release();
+    removeFarmDataArray_ = nil;
+    
+    newCupIndexes_->removeAllObjects();
+    newHorseIndexes_->removeAllObjects();
+    newHorseIndexes_->release();
+    newCupIndexes_->release();
+    newCupIndexes_ = nil;
+    newHorseIndexes_ = nil;
+    
+    achievement_ ->release();
+    achievement_ = nil;
+    
+    GameTimer::clearGameTimer();
+    
+    clearShort1DArray(&itemPack_);
+    
+    clearShort1DArray(&horseHaveState_);
+    
+//    [super dealloc];
+}
+
+
+
+
+void Player::handleFarmDecorationTime()
+{
+    int time = 0;
+    int timetotal;
+    FarmDecoration *dec=NULL:
+    for (int i=0; i<decorationArray_->count(); i++) {
+        dec=(FarmDecoration *)decorationArray_->objectAtIndex(i);
+        if (!dec->getIsForever()) {
+            timetotal = FarmDecorationData::sharedFarmDecorationData()->getAliveTime() -> value[dec->getDecorationType()];
+        
+        }
+    }
+    FarmDecoration *dec=NULL;
+    for (int i=0; i<decorationArray_->count(); i++) {
+        dec=(FarmDecoration *)decorationArray_->objectAtIndex(i);
+        if (!dec->getIsForever()) {
+            //            timetotal = [FarmDecorationData sharedFarmDecorationData].aliveTime -> value[dec.decorationType];
+            timetotal = FarmDecorationData::sharedFarmDecorationData()->getAliveTime() -> value[dec->getDecorationType()];
+            time = timetotal + (dec->getCurrentTime() - DataManager::sharedDataManager()->getLandingTime());
+            if (time > 0) {
+                dec->setTimer(time);
+            } else {
+                dec->setTimer(0);
+            }
+        }
+    }
+//    for (FarmDecoration *dec in decorationArray_) {
+//        if (!dec->getIsForever()) {
+////            timetotal = [FarmDecorationData sharedFarmDecorationData].aliveTime -> value[dec.decorationType];
+//            timetotal = FarmDecorationData::sharedFarmDecorationData()->getAliveTime() -> value[dec->getDecorationType()];
+//            time = timetotal + (dec.currentTime - [DataManager sharedDataManager].landingTime);
+//            if (time > 0) {
+//                [dec.timer setTime:time];
+//            } else {                            
+//                [dec.timer setTime:0];
+//            }
+//        }
+//    }
+}
+
+
+void Player::handleFarmBuildTime()
+{
+    int time = 0;
+    long long ctime;
+    FarmBuild *build=NULL;
+    for (int i=0;i< buildArray_->count();i++) {
+        switch (build->getBuildType()) {
+            case FARMBUILDTYPE_HORSEHOME:
+                ctime = (FarmHorseHome *)build->startTime();
+                if (ctime > 0) {
+                    time = ctime - DataManager::sharedDataManager()->getLandingTime();
+                    if ((FarmHorseHome *)build->ctTime() + time <= 0) {
+                        while (time < 0) {
+                            time += (FarmHorseHome *)build->ctTime();
+                            (FarmHorseHome *)build->addHorseVitalityValueWithState(YES);
+                        }
+                        (FarmHorseHome *)build->setHorseHomeTime(0);
+                    } else {
+                        (FarmHorseHome *)build->setHorseHomeTime(time);
+                    }
+                }
+                break;
+            case FARMBUILDTYPE_TRAININGFIELD_AGILE:
+            case FARMBUILDTYPE_TRAININGFIELD_POWER:
+            case FARMBUILDTYPE_TRAININGFIELD_SPEED:
+                for (int i = 0; i < 6; i ++) {
+                    if ((FarmTrainingField *)build->trainingStateWithIndex(i) == SMSDTrainingProcessing) {
+                        ctime = (FarmTrainingField *)build-> startTrainingTimesWithIndex(i);
+                        time = (FarmTrainingField *)build-> trainingTimeWithIndex(i) + (ctime - DataManager:: sharedDataManager()->getLandingTime());
+                        if (time > 0) {
+                            (FarmTrainingField *)build->addTrainingTimerWithIndex(i,time);
+                        } else {
+                            (FarmTrainingField *)build-> addTrainingTimerWithIndex(i,0);
+                        }
+                    }
+                }
+                break;
+        }
+        
+        switch (build->getActionState()) {
+            case ACT_UPGRADE:
+                if (build->getStartBuildingTime() > 0) {
+                    time = build->getUpgradeTime()+ (ctime - DataManager::sharedDataManager()->getLandingTime());
+                    build->getUpGradeTime()->setTime(time);
+                }
+                break;
+        }
+    }
+//    for (FarmBuild *build in buildArray_) {
+//        switch (build.buildType) {
+//            case FARMBUILDTYPE_HORSEHOME:
+//                ctime = [(FarmHorseHome *)build startTime];
+//                if (ctime > 0) {
+//                    time = ctime - [DataManager sharedDataManager].landingTime;
+//                    if ([(FarmHorseHome *)build ctTime] + time <= 0) {
+//                        while (time < 0) {
+//                            time += [(FarmHorseHome *)build ctTime];
+//                            [(FarmHorseHome *)build addHorseVitalityValueWithState:YES];
+//                        }
+//                        [(FarmHorseHome *)build setHorseHomeTime:0];
+//                    } else {
+//                        [(FarmHorseHome *)build setHorseHomeTime:time];
+//                    }
+//                }
+//                break;
+//            case FARMBUILDTYPE_TRAININGFIELD_AGILE:
+//            case FARMBUILDTYPE_TRAININGFIELD_POWER:
+//            case FARMBUILDTYPE_TRAININGFIELD_SPEED:
+//                for (int i = 0; i < 6; i ++) {
+//                    if ([(FarmTrainingField *)build trainingStateWithIndex:i] == SMSDTrainingProcessing) {
+//                        ctime = [(FarmTrainingField *)build startTrainingTimesWithIndex:i];
+//                        time = [(FarmTrainingField *)build trainingTimeWithIndex:i] + (ctime - [DataManager sharedDataManager].landingTime);
+//                        if (time > 0) {
+//                            [(FarmTrainingField *)build addTrainingTimerWithIndex:i time:time];
+//                        } else {
+//                            [(FarmTrainingField *)build addTrainingTimerWithIndex:i time:0];
+//                        }
+//                    }
+//                }
+//                break;
+//        }
+//        
+//        switch (build.actionState) {
+//            case ACT_UPGRADE:
+//                if (build.startBuildingTime > 0) {
+//                    time = [build getUpgradeTime] + (ctime - [DataManager sharedDataManager].landingTime);
+//                    [build.upGradeTime setTime:time];
+//                }
+//                break;
+//        }
+//    }
+}
+
+//2012.11.18修改
+void Player::handleTimeWithResume()
+{
+    DataManager::sharedDataManager()->setGameLandingTime();
+     handleFarmBuildTime();
+    handleFarmDecorationTime();
+}
+
+
+
+
+void Player::setTrainingFinishNotification()
+{
+    int time = 0;
+    FarmBuild *build=NULL;
+    for (int i=0;i<buildArray_->count();i++) {
+        build=(FarmBuild *)buildArray_->objectAtIndex(i);
+        switch (build->getBuildType()) {
+            case FARMBUILDTYPE_TRAININGFIELD_AGILE:
+            case FARMBUILDTYPE_TRAININGFIELD_POWER:
+            case FARMBUILDTYPE_TRAININGFIELD_SPEED:
+            {
+                FarmTrainingField *training = (FarmTrainingField *)build;
+                for (int i = 0; i < 6; i ++) {
+                    if (training ->trainingStateWithIndex(i) == SMSDTrainingProcessing) {
+                        int temp = training->trainingTimerWithIndex(i)->time();
+                        if (temp > time) {
+                            time = temp;
+                        }
+                    }
+                }
+            }
+                break;
+        }
+    }
+//    for (FarmBuild *build in buildArray_) {
+//        switch (build.buildType) {
+//            case FARMBUILDTYPE_TRAININGFIELD_AGILE:
+//            case FARMBUILDTYPE_TRAININGFIELD_POWER:
+//            case FARMBUILDTYPE_TRAININGFIELD_SPEED:
+//            {
+//                FarmTrainingField *training = (FarmTrainingField *)build;
+//                for (int i = 0; i < 6; i ++) {
+//                    if ([training trainingStateWithIndex:i] == SMSDTrainingProcessing) {
+//                        int temp = [[training trainingTimerWithIndex:i] time];
+//                        if (temp > time) {
+//                            time = temp;
+//                        }
+//                    }
+//                }
+//            }
+//                break;
+//        }
+//    }
+    if (time > 0) {
+        CCString *string = NSLocalizedStringFromTable(@"trainingFinish", @"LocalNotification", nil);
+        
+        [[LocalNotification sharedLocalNotification] addNotificationWithTimeInterval:time message:string];
+    }
+}
+
+-(void)setHorseVitalityFullNotification
+{
+    int time = 0;
+    for (FarmBuild *build in buildArray_) {
+        switch (build.buildType) {
+            case FARMBUILDTYPE_HORSEHOME:
+            {
+                int tempTime = 0,
+                tempVitality = 0;
+                FarmHorseHome *horseHome = (FarmHorseHome *)build;
+                if ([horseHome.cTimer time] > 0) {
+                    tempTime += [horseHome.cTimer time];
+                    tempVitality = [horseHome.horse vitalitValueWithIndex:0] + horseHome.vitalityRecoveryValue;
+                    if (tempVitality < 100) {
+                        while (tempVitality < 100) {
+                            tempTime += [horseHome ctTime];
+                            tempVitality += horseHome.vitalityRecoveryValue;
+                        }
+                    }
+                }
+                if (tempTime > time) {
+                    time = tempTime;
+                }
+            }
+                break;
+        }
+    }
+    if (time > 0) {
+        NSString *string = NSLocalizedStringFromTable(@"vitalityFull", @"LocalNotification", nil);
+        [[LocalNotification sharedLocalNotification] addNotificationWithTimeInterval:time message:string];
+    }
+}
+
+-(void)setLocalNotification
+{
+    [self setTrainingFinishNotification];
+    [self setHorseVitalityFullNotification];
+}
+
+
+
+-(void)process
+{
+    if ([FarmGameLayer sharedFarmGameLayer].farmGameState == FarmLoading) {
+        return;
+    }
+    if ([DataManager sharedDataManager].gameState == LoadingState) {
+        return;
+    }
+    //    NSLog(@"[GameEvent sharedFarmGameEvent].isEventPlaying = %d",[GameEvent sharedFarmGameEvent].isEventPlaying);
+    //    NSLog(@"[FarmGameLayer sharedFarmGameLayer].farmGameState = %d",[FarmGameLayer sharedFarmGameLayer].farmGameState);
+    //    NSLog(@"[GameEvent sharedFarmGameEvent].eventIndex = %d",[GameEvent sharedFarmGameEvent].eventIndex);
+    //    NSLog(@"[GameTeach sharedGameTeach].isTeachPlaying = %d",[GameTeach sharedGameTeach].isTeachPlaying);
+    //    NSLog(@"[MainMission sharedMainMission].missionId = %d",[MainMission sharedMainMission].missionId);
+    //    NSLog(@"[MainMission sharedMainMission].missionState = %d",[MainMission sharedMainMission].missionState);
+    if (debugState == 1) {
+        //        NSLog(@"[DataManager sharedDataManager].gameState = %d",[DataManager sharedDataManager].gameState);
+        switch ([DataManager sharedDataManager].gameState) {
+            case MainMenuState:
+                break;
+            case FarmState:
+                if (isPlayerLevelUp_ && [FarmGameLayer sharedFarmGameLayer].farmGameState == FarmNormalState && [[[CCDirector sharedDirector] runningScene] isEqual:[FarmScene sharedFarmScene]]) {
+                    if (![DataManager sharedDataManager].isNotShowDialog && ![GameTeach sharedGameTeach].isTeachPlaying) {
+                        SMSDPlayerUpgradeDialog* dialog = [[[SMSDPlayerUpgradeDialog alloc] initWithLevel:level_] autorelease];
+                        [[SMSDFarmAlertViewManager sharedFarmAlertViewManager] showAlert:dialog];
+                        //                        [[FarmControlLayer sharedFarmControlLayer].farmUI addChild:dialog z:50001 tag:50001];
+                        isPlayerLevelUp_ = NO;
+                    }
+                }
+                if (isGainNewHorse_ &&newHorseIndexes_.count && [FarmGameLayer sharedFarmGameLayer].farmGameState == FarmNormalState && [[[CCDirector sharedDirector] runningScene] isEqual:[FarmScene sharedFarmScene]]){
+                    if (![DataManager sharedDataManager].isNotShowDialog && ![GameTeach sharedGameTeach].isTeachPlaying) {
+                        SMSDCheckHorseDialog* dialog = [[[SMSDCheckHorseDialog alloc] initWithIndex:[[newHorseIndexes_ lastObject] intValue] withFlag:YES] autorelease];
+                        [[SMSDFarmAlertViewManager sharedFarmAlertViewManager] showAlert:dialog];
+                        //                        [[FarmControlLayer sharedFarmControlLayer].farmUI addChild:dialog];
+                        
+                        FarmHome* home;
+                        for (FarmBuild* build in buildArray_) {
+                            if (build.buildType == FARMBUILDTYPE_HOME) {
+                                home = (FarmHome*)build;
+                                break;
+                            }
+                        }
+                        [home showNewAlert];
+                        isGainNewHorse_ = NO;
+                    }
+                }
+                if ([FarmGameLayer sharedFarmGameLayer].farmGameState == FarmNormalState && [[[CCDirector sharedDirector] runningScene] isEqual:[FarmScene sharedFarmScene]]) {
+                    [[GameEvent sharedFarmGameEvent] farmEventProcess:self];
+                }
+                [[GameTeach sharedGameTeach] farmTeachProcess:self];
+                break;
+            case MatchState:
+                [[GameEvent sharedFarmGameEvent] raceEventProcess:[RaceGameLayer sharedRaceGameLayer].operableHorse];
+                [[GameTeach sharedGameTeach] raceTeachProcess:[RaceGameLayer sharedRaceGameLayer].operableHorse];
+                break;
+            case SelectMatchState:
+                [[GameEvent sharedFarmGameEvent] farmEventProcess:self];
+                [[GameTeach sharedGameTeach] farmTeachProcess:self];
+                break;
+        }
+    }
+    
+    //    NSLog(@"[DataManager sharedDataManager].player.allHorseExpIncrease = %d",[DataManager sharedDataManager].player.allHorseExpIncrease);
+    for (FarmHorse *horse in horseArray_) {
+        [[FarmHorseAI sharedFarmHorseAi] farmHorseAiProcess:horse];
+        [horse process];
+    }
+    if (![GameTeach sharedGameTeach].isStopTime) {
+        for(FarmBuild *build in buildArray_){
+            switch (build.buildType) {
+                case FARMBUILDTYPE_HOME:
+                    [(FarmHome *)build process];
+                    break;
+                case FARMBUILDTYPE_SHOP:
+                    [(FarmShop *)build process];
+                    break;
+                case FARMBUILDTYPE_HORSEHOME:
+                    [(FarmHorseHome *)build process];
+                    break;
+                case FARMBUILDTYPE_TRAININGFIELD_SPEED:
+                case FARMBUILDTYPE_TRAININGFIELD_AGILE:
+                case FARMBUILDTYPE_TRAININGFIELD_POWER:
+                    [(FarmTrainingField *)build process];
+                    break;
+            }
+        }
+    }
+    
+    
+    for (FarmDecoration *dec in decorationArray_) {
+        [dec process];
+    }
+    
+    [gameTimer_ process];
+}
+
+
+
+
+-(void)newFarmBuildWithId:(int)buildId Level:(int)level Pos:(CGPoint)pos FaceTo:(int)faceto Horse:(FarmHorse *)horse
+{
+    FarmBuild *build_ = nil;
+    int data[3] = {2,4,6};
+    switch (buildId) {
+        case FARMBUILDTYPE_HOME:
+            build_ = [FarmHome farmHomeWithId:buildId Level:level];
+            break;
+        case FARMBUILDTYPE_SHOP:
+            build_ = [FarmShop FarmShopWithId:buildId Level:level];
+            break;
+        case FARMBUILDTYPE_TRAININGFIELD_SPEED:
+        case FARMBUILDTYPE_TRAININGFIELD_AGILE:
+        case FARMBUILDTYPE_TRAININGFIELD_POWER:
+            build_ = [FarmTrainingField FarmTrainingFieldWithId:buildId Level:level];
+            for (int i = 0; i < data[level]; i ++) {
+                [(FarmTrainingField *)build_ setTrainingStateWithIndex:i state:SMSDTrainingEmpty];
+            }
+            break;
+        case FARMBUILDTYPE_HORSEHOME:
+            build_ = [FarmHorseHome FarmHorseHomeWithId:buildId Level:level];
+            if (horse) {
+                [(FarmHorseHome *)build_ setHorse:horse];
+            }
+            break;
+    }
+    build_.farmNpcTilePos = pos;
+    build_.faceTo = faceto;
+    [build_ setAction:ACT_STAND isSaveTime:NO];
+    [buildArray_ addObject:build_];
+}
+
+
+
+
+
+-(void)LoadFarmBuildWithId:(int)buildId Level:(int)level Pos:(CGPoint)pos FaceTo:(int)faceto NpcId:(int)npcid
+{
+    FarmBuild *build_ = nil;
+    switch (buildId) {
+        case FARMBUILDTYPE_HOME:
+            build_ = [FarmHome farmHomeWithId:buildId Level:level];
+            break;
+        case FARMBUILDTYPE_SHOP:
+            build_ = [FarmShop FarmShopWithId:buildId Level:level];
+            break;
+        case FARMBUILDTYPE_TRAININGFIELD_SPEED:
+        case FARMBUILDTYPE_TRAININGFIELD_AGILE:
+        case FARMBUILDTYPE_TRAININGFIELD_POWER:
+            build_ = [FarmTrainingField FarmTrainingFieldWithId:buildId Level:level];
+            break;
+        case FARMBUILDTYPE_HORSEHOME:
+            build_ = [FarmHorseHome FarmHorseHomeWithId:buildId Level:level];
+            break;
+    }
+    build_.npcId = npcid;
+    build_.farmNpcTilePos = pos;
+    build_.faceTo = faceto;
+    [build_ setAction:ACT_STAND isSaveTime:NO];
+    [buildArray_ addObject:build_];
+}
+
+
+
+
+-(void)newFarmDecorationWithId:(int)buildId Pos:(CGPoint)pos FaceTo:(int)faceto
+{
+    FarmDecoration *temp = [FarmDecoration FarmDecorationWithType:buildId];
+    temp.farmNpcTilePos = pos;
+    temp.faceTo = faceto;
+    [temp setAction:ACT_STAND];
+    [decorationArray_ addObject:temp];
+}
+
+
+
+-(void)LoadFarmBuildWithId:(int)buildId Pos:(CGPoint)pos FaceTo:(int)faceto NpcId:(int)npcid
+{
+    FarmDecoration *temp = [FarmDecoration FarmDecorationWithType:buildId];
+    temp.npcId = npcid;
+    temp.farmNpcTilePos = pos;
+    temp.faceTo = faceto;
+    [temp setAction:ACT_STAND];
+    [decorationArray_ addObject:temp];
+}
+
+
+
+-(void)newFarmHorseWithId:(int)horseId Name:(NSString *)name Level:(int)level Age:(int)age
+{
+    FarmHorse *horse_ =[FarmHorse horseWithId:horseId age:age level:level];
+    horse_.name = name;
+    horse_.currentExp = 0;
+    
+    [horse_ setAction:ACT_STAND];
+    [horseArray_ addObject:horse_];
+}
+
+
+
+
+-(FarmHorse *)getHorseWithNpcId:(int)npcid
+{
+    FarmHorse *horse_ = nil;
+    if (npcid > -1) {
+        for (int i = 0, length = horseArray_.count; i < length; i ++) {
+            horse_ = [horseArray_ objectAtIndex:i];
+            if (horse_.npcId == npcid) {
+                return horse_;
+            }
+        }
+    }
+    return nil;
+}
+
+
+
+
+-(void)gameTimeProcess
+{
+    [gameTimer_ process];
+}
+
+
+
+-(void)changeFarmMapLevel:(int)value
+{
+    farmMapLevel_ = value;
+}
+
+
+-(int)getArrayLength:(NSMutableArray *)array0 array1:(NSMutableArray *)array1
+{
+    return array0.count + array1.count;
+}
+
+-(int)getLastHorseKey:(NSMutableArray *)array0 array1:(NSMutableArray *)array1
+{
+    int sqlkey0, sqlkey1;
+    if (array0.count > 0) {
+        FarmNpc *temp = [array0 objectAtIndex:array0.count - 1];
+        sqlkey0 = temp.sqlKey;
+    } else {
+        sqlkey0 = -1;
+    }
+    if (array1.count > 0) {
+        FarmNpc *temp = [array1 objectAtIndex:array1.count - 1];
+        sqlkey1 = temp.sqlKey;
+    } else {
+        sqlkey1 = -1;
+    }
+    int sqlkey = sqlkey0 > sqlkey1 ? sqlkey0 : sqlkey1;
+    return sqlkey;
+}
+
+
+
+-(void)addHorseArray:(FarmHorse *)value
+{
+    
+    [value creatSqlKey];
+    [horseArray_ addObject:value];
+    [self setHorseHaveStateWithId:value.horseId sqlState:YES];
+    int num = horseArray_.count;
+    [[MainMission sharedMainMission] checkMissionWithType:numberOfHorses name:-1 level:-1 other:-1 num:num];
+    [[MainMission sharedMainMission] checkMissionGroomHorse:value];
+    [[Achievement sharedAchievement] checkAchievementWithType:numOfRearingHorse targetId:-1 num:num];
+    [[Achievement sharedAchievement] checkNumOfEachQualityHorse];
+}
+
+
+-(void)reduceHorseArrayWithIndex:(int)index
+{
+    if (index < 0 || index >= horseArray_.count) {
+        NSLog(@"马集合的索引不对");
+        return;
+    }
+    FarmHorse *temp = [horseArray_ objectAtIndex:index];
+    [[SQLData sharedSQLiteData] deleteSQLData:@"HORSEARRAY" primaryName:@"HORSEINDEX" primaryKey:temp.sqlKey];
+    [horseArray_ removeObjectAtIndex:index];
+    [[MainMission sharedMainMission] checkMissionWithType:numberOfHorses name:-1 level:-1 other:-1 num:horseArray_.count];
+}
+
+
+-(void)reduceHorseArrayWithNpc:(FarmHorse *)horse
+{
+    [[SQLData sharedSQLiteData] deleteSQLData:@"HORSEARRAY" primaryName:@"HORSEINDEX" primaryKey:horse.sqlKey];
+    [horseArray_ removeObject:horse];
+    [[MainMission sharedMainMission] checkMissionWithType:numberOfHorses name:-1 level:-1 other:-1 num:horseArray_.count];
+}
+
+
+
+-(void)addBuildArray:(FarmBuild *)value
+{
+    [value creatSqlKey];
+    [[NetWorkMotionManager sharedNetWorkMotionManager] sendBuilderStructureStartSendMessage:value];
+    [buildArray_ addObject:value];
+}
+
+
+-(void)reduceBuildArrayWithIndex:(int)index
+{
+    if (index < 0 || index >= buildArray_.count) {
+        NSLog(@"建筑物集合的索引不对");
+        return;
+    }
+    FarmBuild *temp = [buildArray_ objectAtIndex:index];
+    [[SQLData sharedSQLiteData] deleteSQLData:@"BUILDARRAY" primaryName:@"BUILDINDEX" primaryKey:temp.sqlKey];
+    [buildArray_ removeObjectAtIndex:index];
+}
+
+
+-(void)reduceBuildArrayWithNpc:(FarmBuild *)build
+{
+    [[SQLData sharedSQLiteData] deleteSQLData:@"BUILDARRAY" primaryName:@"BUILDINDEX" primaryKey:build.sqlKey];
+    [buildArray_ removeObject:build];
+}
+
+
+
+-(void)addDecorationArray:(FarmDecoration *)value
+{
+    [value creatSqlKey];
+    [value setDecorationFunctionWithState:YES];
+    [[NetWorkMotionManager sharedNetWorkMotionManager] sendPutOrnamentalSendMessage:value];
+    [decorationArray_ addObject:value];
+}
+
+
+-(void)reduceDecorationArrayWithIndex:(int)index
+{
+    if (index < 0 || index >= decorationArray_.count) {
+        NSLog(@"装饰物集合的索引不对");
+        return;
+    }
+    FarmDecoration *temp = [decorationArray_ objectAtIndex:index];
+    [temp clearDecorationFunctionWithState:YES];
+    [[SQLData sharedSQLiteData] deleteSQLData:@"DECORATIONARRAY" primaryName:@"DECORATIONINDEX" primaryKey:temp.sqlKey];
+    [decorationArray_ removeObjectAtIndex:index];
+}
+
+
+-(void)reduceDecorationArrayWithNpc:(FarmDecoration *)dec
+{
+    [dec clearDecorationFunctionWithState:YES];
+    [[SQLData sharedSQLiteData] deleteSQLData:@"DECORATIONARRAY" primaryName:@"DECORATIONINDEX" primaryKey:dec.sqlKey];
+    [decorationArray_ removeObject:dec];
+}
+
+
+
+-(BOOL)addHorsePack:(FarmHorse *)horse
+{
+    if (horsePack_.count >= HORSEPACKNUM) {
+        return NO;
+    }
+    int key;
+    if (horse.sqlKey > -1) {
+        key = horse.sqlKey;
+    } else {
+        key = ++ maxHorseSqlKey;
+        //        if ([self getArrayLength:horseArray_ array1:horsePack_] > 0) {
+        //            key = [self getLastHorseKey:horseArray_ array1:horsePack_] + 1;
+        //        }else {
+        //            key = 0;
+        //        }
+    }
+    [[SQLData sharedSQLiteData] saveHorsePackWithKey:key horse:horse];
+    [self addHorsePackWithPaixu:horse];
+    [self setHorseHaveStateWithId:horse.horseId sqlState:YES];
+    return YES;
+}
+
+
+-(void)addHorsePackWithPaixu:(FarmHorse *)horse
+{
+    if (horsePack_.count < 1) {
+        [horsePack_ addObject:horse];
+    } else {
+        int index = 0;
+        for (FarmHorse *temp in horsePack_) {
+            if (horse.quality >= temp.quality) {
+                break;
+            }
+            index ++;
+        }
+        [horsePack_ insertObject:horse atIndex:index];
+    }
+}
+
+
+-(void)reduceHorsePack:(int)index
+{
+    if (index < 0 || index >= horsePack_.count) {
+        NSLog(@"马背包的索引不对");
+        return;
+    }
+    FarmHorse *temp = [horsePack_ objectAtIndex:index];
+    [[SQLData sharedSQLiteData] deleteSQLData:@"HORSEPACK" primaryName:@"HORSEINDEX" primaryKey:temp.sqlKey];
+    [horsePack_ removeObjectAtIndex:index];
+}
+
+
+-(void)reduceHorsePackWithHorse:(FarmHorse *)horse
+{
+    [[SQLData sharedSQLiteData] deleteSQLData:@"HORSEPACK" primaryName:@"HORSEINDEX" primaryKey:horse.sqlKey];
+    [horsePack_ removeObject:horse];
+}
+
+
+-(BOOL)addBuildPack:(FarmBuild *)build
+{
+    if (buildPack_.count >= BUILDPACKNUM) {
+        return NO;
+    }
+    int key;
+    if (build.sqlKey > -1) {
+        key = build.sqlKey;
+    } else {
+        key = ++ maxBuildSqlKey;
+        //        if ([self getArrayLength:buildArray_ array1:buildPack_] > 0) {
+        //            key = [self getLastHorseKey:buildArray_ array1:buildPack_] + 1;
+        //        }else {
+        //            key = 0;
+        //        }
+    }
+    [[SQLData sharedSQLiteData] saveBuildPackWithKey:key build:build];
+    [buildPack_ addObject:build];
+    return YES;
+}
+
+
+-(void)reduceBuildPack:(int)index
+{
+    if (index < 0 || index >= buildPack_.count) {
+        NSLog(@"建筑物背包的索引不对");
+        return;
+    }
+    FarmBuild *temp = [buildPack_ objectAtIndex:index];
+    //    [[SQLData sharedSQLiteData] deleteSQLData:@"BUILDPACK" primaryName:@"BUILDINDEX" primaryKey:temp.sqlKey];
+    [buildPack_ removeObjectAtIndex:index];
+}
+
+
+
+-(BOOL)addDecorationPack:(FarmDecoration *)value
+{
+    if (decorationPack_.count >= DECORATIONPACKNUM) {
+        return NO;
+    }
+    int key;
+    if (value.sqlKey > -1) {
+        key = value.sqlKey;
+    } else {
+        key = ++ maxDecorationSqlKey;
+        //        if ([self getArrayLength:decorationArray_ array1:decorationPack_] > 0) {
+        //            key = [self getLastHorseKey:decorationArray_ array1:decorationPack_] + 1;
+        //        }else {
+        //            key = 0;
+        //        }
+    }
+    [[SQLData sharedSQLiteData] saveDecorationPackWithKey:key decoration:value];
+    [decorationPack_ addObject:value];
+    return YES;
+}
+
+
+-(void)reduceDecorationPackWithIndex:(int)index
+{
+    if (index < 0 || index >= decorationPack_.count) {
+        NSLog(@"马背包的索引不对");
+        return;
+    }
+    FarmDecoration *temp = [decorationPack_ objectAtIndex:index];
+    [[SQLData sharedSQLiteData] deleteSQLData:@"DECORATIONPACK" primaryName:@"DECORATIONINDEX" primaryKey:temp.sqlKey];
+    [decorationPack_ removeObjectAtIndex:index];
+}
+
+
+-(void)reduceDecorationPackWithNpc:(FarmDecoration *)dec
+{
+    [[SQLData sharedSQLiteData] deleteSQLData:@"DECORATIONPACK" primaryName:@"DECORATIONINDEX" primaryKey:dec.sqlKey];
+    [decorationPack_ removeObject:dec];
+}
+
+
+
+-(void)addItemPack:(int)itemname num:(int)addnum
+{
+    if (itemname >= ITEMPACKNUM) {
+        return;
+    }
+    itemPack_ -> value[itemname] += addnum;
+    [[SQLData sharedSQLiteData] saveItemPackWithItemId:itemname itemNum:itemPack_ -> value[itemname]];
+}
+
+
+
+
+-(void)getItemPack
+{
+    for (int i = 0; i < getShort1DArrayLength(&itemPack_); i ++) {
+        NSLog(@"getShort1DArrayValue(&itemPack_, %d) = %d", i, getShort1DArrayValue(&itemPack_, i));
+    }
+}
+
+
+-(void)getBuildPack
+{
+    
+}
+
+
+
+
+-(int)reduceItem:(int)itemname reducenum:(int)reducenum
+{
+    if (itemname >= ITEMPACKNUM) {
+        return -1;
+    }
+    itemPack_ -> value[itemname] -= reducenum;
+    [[SQLData sharedSQLiteData] saveItemPackWithItemId:itemname itemNum:itemPack_ -> value[itemname]];
+    return itemPack_ -> value[itemname];
+}
+
+
+-(int)getItemNumWithName:(int)name
+{
+    return itemPack_ -> value[name];
+}
+
+
+
+//0：买   1：卖
+-(int)getItemMoneyWithState:(int)state name:(int)itemname
+{
+    if (state == 0) {
+        return itemname;
+    }else {
+        return itemname / 10;
+    }
+}
+
+
+-(int)getHorseMoneyWithState:(int)state horse:(FarmHorse *)horse
+{
+    if (!horse) {
+        return -1;
+    }
+    if (state == 0) {
+        return horse.farmMoney;
+    }else {
+        return horse.farmMoney / 10;
+    }
+}
+
+
+
+-(int)useItem:(int)itemname horse:(FarmHorse *)horse
+{
+    int state = 0;
+    int functionValue = 0;
+    
+    if (state == 0) {
+        if (![horse isVitalityValueFull]) {
+            functionValue = [ItemData sharedItemData].addVitalityData -> value[itemname];
+            
+            [horse addVitalityValueWithIndex:0 value:functionValue state:YES];
+        } else {
+            state = -1;
+            useItemStr_ = @"精力已满，无法使用！";
+        }
+        BOOL flag = NO;
+        if (state == 0) {
+            int random = randomInt(100);
+            if (random < [ItemData sharedItemData].functionDate -> value[itemname] -> value[2] -> value[0]) {
+                flag = YES;
+                for (int i = 0; i < [ItemData sharedItemData].functionDate -> value[itemname] -> value[0] -> length; i ++) {
+                    int type = [ItemData sharedItemData].functionDate -> value[itemname] -> value[0] -> value[i];
+                    int value = [ItemData sharedItemData].functionDate -> value[itemname] -> value[1] -> value[i];
+                    switch (type) {
+                        case 0:
+                            [horse addSpeedWithIndex:1 value:value];
+                            break;
+                        case 1:
+                            [horse addAgileWithIndex:1 value:value];
+                            break;
+                        case 2:
+                            [horse addPowerWithIndex:1 value:value];
+                            break;
+                    }
+                }
+            }
+        }
+        [[NetWorkMotionManager sharedNetWorkMotionManager] sendFeedHorseRequestWithHorseID:horse.sqlKey itemKeyID:itemname + 100001 isIncrease:flag];
+    }
+    if (state == 0) {
+        [[DailyMission sharedSubMission] checkMissionWithType:numberOfDeeding num:1];
+        [[Achievement sharedAchievement] checkAchievementWithType:numOfUseItem targetId:-1 num:1];
+        if ([self reduceItem:itemname reducenum:1] == 0) {
+            state = 1;
+        }
+    }
+    return state;
+}
+
+
+
+
+-(int)getPackPos:(Short2DArray)data name:(byte)name length:(int)length
+{
+    for (int i = length - 1; i >= 0; i--) {
+        if (getShort2DArrayValue(&data, i, 0) == name) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+
+
+
+
+
+
+
+-(int)getBuildMoneyWithState:(int)state build:(FarmBuild *)build
+{
+    if (!build) {
+        return -1;
+    }
+    if (state == 0) {
+        return build.farmMoney;
+    }else {
+        return build.farmMoney / 10;
+    }
+}
+
+
+
+
+-(void)addExpWithIndex:(int)index value:(int)value state:(BOOL)state
+{
+    int addValue = 0;
+    switch (index) {
+        case 0:
+            if (level_ < PLAYERLEVELTOTAL) {
+                addValue = value * (experience_[2] / 100.0f);
+                experience_[index] += (value + addValue);
+                currentExpInSum += (value + addValue);
+                [self checkLevelUp];
+            }
+            break;
+        case 1:
+            experience_[index] += value;
+            break;
+        case 2:
+            experience_[index] += value;
+            experience_[index] = experience_[index] < 0 ? 0 : experience_[index];
+            experience_[index] = experience_[index] > [Constant sharedConstant].playerExpAddLimit - 100 ? [Constant sharedConstant].playerExpAddLimit - 100 : experience_[index];
+            break;
+    }
+    if (state) {
+        [[SQLData sharedSQLiteData] savePlayerBaseData];
+    }
+}
+
+
+-(void)checkLevelUp
+{
+    while (experience_[0] >= experience_[1]) {
+        if (level_ == PLAYERLEVELTOTAL) {
+            experience_[0] = experience_[1];
+            currentExpInSum = needExpInSum;
+        } else {
+            experience_[0] -= experience_[1];
+            [self levelUp];
+            [self setNeedExp];
+        }
+    }
+}
+
+-(void)setExpWithIndex:(int)index value:(int)value
+{
+    experience_[index] = value;
+    if (index == 0) {
+        for (int i = 0; i < level_; i++) {
+            currentExpInSum += [PlayerData sharedPlayerData].playerLevelUpData -> value[i] -> value[0];
+        }
+        needExpInSum = currentExpInSum + [PlayerData sharedPlayerData].playerLevelUpData -> value[level_] -> value[0];
+        currentExpInSum += value;
+    }
+}
+
+
+-(int)expWithIndex:(int)index
+{
+    return experience_[index];
+}
+
+
+
+-(NSMutableArray *)getFarmBuffArray
+{
+    NSMutableArray *array = [NSMutableArray array];
+    for (int i = 0; i < MoneyIncreasePercent + 1; i ++) {
+        switch (i) {
+            case PlayerExpIncrease:
+                if (experience_[2] > 0) {
+                    CGPoint temp = ccp(i, experience_[2] / 100.0f);
+                    [array addObject:[NSValue valueWithCGPoint:temp]];
+                }
+                break;
+            case AllHorseExpIncreasePercent:
+                if (allHorseExpIncrease_ > 0) {
+                    CGPoint temp = ccp(i, allHorseExpIncrease_ / 100.0f);
+                    [array addObject:[NSValue valueWithCGPoint:temp]];
+                }
+                break;
+            case AddHorseHealthValue:
+                if (allHorseHealthIncrease_ > 0) {
+                    CGPoint temp = ccp(i, allHorseHealthIncrease_);
+                    [array addObject:[NSValue valueWithCGPoint:temp]];
+                }
+                break;
+            case AddHorseHomeNumTotal:
+                if (horseHomeNum_[2] > 0) {
+                    CGPoint temp = ccp(i, horseHomeNum_[2]);
+                    [array addObject:[NSValue valueWithCGPoint:temp]];
+                }
+                break;
+            case AddVitalityRecoveryValue:
+                if (allHorseVitalityIncrease_ > 0) {
+                    CGPoint temp = ccp(i, allHorseVitalityIncrease_);
+                    [array addObject:[NSValue valueWithCGPoint:temp]];
+                }
+                break;
+            case MoneyIncreasePercent:
+                if (gameMoney_[2] > 0) {
+                    CGPoint temp = ccp(i, gameMoney_[2] / 100.0f);
+                    [array addObject:[NSValue valueWithCGPoint:temp]];
+                }
+                break;
+        }
+    }
+    return array;
+}
+
+
+
+int raceOpenData[10] = {2, 5, 8, 11, 14, 17, 20, 23, 26, 29};
+
+-(void)levelUp
+{
+    [[NetWorkMotionManager sharedNetWorkMotionManager] sendUserLevelUpRequest];
+    [self setPlayerLevel:level_ + 1 state:YES];
+    if (level_ == 4) {
+        [[DailyMission sharedSubMission] randomDailyMission];
+        [[NetWorkMotionManager sharedNetWorkMotionManager] sendDailyMissionList];
+    }
+    //主线任务修改
+    [[MainMission sharedMainMission] checkMissionWithType:farmUpGrade name:-1 level:level_ other:-1 num:-1];
+    isPlayerLevelUp_ = YES;
+    switch (level_) {
+        case 9:
+            for (FarmBuild *build in buildArray_) {
+                if (build.buildType == FARMBUILDTYPE_HOME) {
+                    if (build.buildLevel == 0) {
+                        [build setAction:ACT_UPGRADE isSaveTime:YES];
+                    }
+                }
+            }
+            break;
+        case 18:
+            for (FarmBuild *build in buildArray_) {
+                if (build.buildType == FARMBUILDTYPE_HOME) {
+                    if (build.buildLevel == 1) {
+                        [build setAction:ACT_UPGRADE isSaveTime:YES];
+                    }
+                }
+            }
+            break;
+    }
+    [self checkMapIncrease:YES];
+    [[Achievement sharedAchievement] checkAchievementWithType:playerLevel targetId:-1 num:level_];
+}
+
+
+
+-(void)checkMapIncrease:(BOOL)state
+{
+    if (farmMapLevel_ < [FarmBuildData sharedFarmBuildData].mapIncreaseData -> length - 1) {
+        int tempLevel = -1;
+        for (int i = 0; i < [FarmBuildData sharedFarmBuildData].mapIncreaseData -> length - 1; i ++) {
+            if (level_ >= [FarmBuildData sharedFarmBuildData].mapIncreaseData -> value[i] -> value[1]) {
+                tempLevel = [FarmBuildData sharedFarmBuildData].mapIncreaseData -> value[i + 1] -> value[0];
+            }
+        }
+        if (tempLevel > -1 && tempLevel > farmMapLevelTotal_) {
+            farmMapLevelTotal_ = tempLevel;
+            if (state) {
+                [[SQLData sharedSQLiteData] savePlayerBaseData];
+            }
+        }
+    }
+}
+
+
+
+
+-(void)homeUp
+{
+    if (level_ == 10) {
+        for (FarmBuild *build in buildArray_) {
+            if (build.buildType == FARMBUILDTYPE_HOME && build.buildLevel == 0) {
+                
+            }
+        }
+    } else if(level_ == 19){
+        for (FarmBuild *build in buildArray_) {
+            if (build.buildType == FARMBUILDTYPE_HOME && build.buildLevel == 1) {
+                
+            }
+        }
+    }
+}
+
+int playerExpData[20] = {
+    30,
+    60,
+    90,
+    120,
+    150,
+    180,
+    210,
+    240,
+    270,
+    300,
+    330,
+    360,
+    390,
+    420,
+    450,
+    480,
+    510,
+    540,
+    570,
+    600
+};
+
+
+int horseTotalData[20] = {3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ,13 ,14 ,15 ,16 ,17, 18, 19, 20, 20, 20};
+
+
+-(BOOL)isHorseHomeFull
+{
+    if (horseHomeNum_[0] < horseHomeNum_[1] + horseHomeNum_[2]) {
+        return NO;
+    }
+    if (debugState == 0) {
+        return NO;
+    } else {
+        return YES;
+    }
+}
+
+
+-(void)setHorseNumTotal
+{
+    horseHomeNum_[1] = [PlayerData sharedPlayerData].playerLevelUpData -> value[level_] -> value[1];
+}
+
+
+-(void)setPlayerLevel:(int)level state:(BOOL)state
+{
+    level_ = level;
+    [self setHorseNumTotal];
+    [[DailyMission sharedSubMission] openDailyMissionWithState:state];
+    [self openShowMatch:state];
+}
+
+
+-(void)openShowMatch:(BOOL)state
+{
+    for (int i = 0; i < ((level_ + 1) / 3) + 1; i ++) {
+        [self openShowMatchWithIndex:i state:state];
+    }
+}
+
+-(void)openShowMatchWithIndex:(int)index state:(BOOL)state
+{
+    for (int i = [MatchData sharedMatchData].keyId -> length - 1; i > -1; i --) {
+        if ([MatchData sharedMatchData].keyId -> value[i] - 4001 == index) {
+            if (matchState_ -> value[i] < 1) {
+                [self setMatchStateWithId:i state:1 sqlState:state];
+            }
+        }
+    }
+}
+
+
+
+-(void)setNeedExp
+{
+    experience_[1] = [PlayerData sharedPlayerData].playerLevelUpData -> value[level_] -> value[0];
+    needExpInSum += experience_[1];
+}
+
+
+-(int)getexp:(int)level
+{
+    return (10 * level * level + 121 * level + 61);
+}
+
+
+
+-(void)setGameMoneyWithIndex:(int)index value:(long long)value
+{
+    gameMoney_[index] = value;
+}
+
+
+-(long long)gameMoneyWithIndex:(int)index
+{
+    return gameMoney_[index];
+}
+
+-(BOOL)isHaveGameMoney:(long long)value
+{
+    if (gameMoney_[0] >= value) {
+        return YES;
+    }
+    return NO;
+}
+
+
+//常量修改
+-(void)raceAddGameMoneyWithValue:(int)value addValue:(int)addValue state:(BOOL)state
+{
+    value += value * (gameMoney_[2] + addValue / 100.0f);
+    gameMoney_[0] += value;
+    gameMoney_[0] = gameMoney_[0] < 0 ? 0 : gameMoney_[0];
+    gameMoney_[0] = gameMoney_[0] > [Constant sharedConstant].gameMoneyLimit ? [Constant sharedConstant].gameMoneyLimit : gameMoney_[0];
+    if (gameMoney_[0] > gameMoney_[1]) {
+        gameMoney_[1] = gameMoney_[0];
+    }
+    if (state) {
+        [[SQLData sharedSQLiteData] savePlayerBaseData];
+    }
+}
+
+//常量修改
+-(void)addGameMoneyWithIndex:(int)index value:(long long)value state:(BOOL)state
+{
+    switch (index) {
+        case 0:
+            value += value * (gameMoney_[2] / 100.0f);
+            gameMoney_[0] += value;
+            gameMoney_[0] = gameMoney_[0] < 0 ? 0 : gameMoney_[0];
+            gameMoney_[0] = gameMoney_[0] > [Constant sharedConstant].gameMoneyLimit ? [Constant sharedConstant].gameMoneyLimit : gameMoney_[0];
+            if (gameMoney_[0] > gameMoney_[1]) {
+                gameMoney_[1] = gameMoney_[0];
+            }
+            break;
+        case 1:
+            gameMoney_[1] += value;
+            break;
+        case 2:
+            gameMoney_[2] += value;
+            gameMoney_[2] = gameMoney_[2] < 0 ? 0 : gameMoney_[2];
+            gameMoney_[2] = gameMoney_[2] > [Constant sharedConstant].gameMoneyAddLimit - 100 ? [Constant sharedConstant].gameMoneyAddLimit - 100 : gameMoney_[2];
+            break;
+    }
+    if (state) {
+        [[SQLData sharedSQLiteData] savePlayerBaseData];
+    }
+}
+
+//常量修改
+-(void)addDiamond:(long long)value
+{
+    diamond_ += value;
+    diamond_ = diamond_ < 0 ? 0 : diamond_;
+    diamond_ = diamond_ > [Constant sharedConstant].diamondLimit ? [Constant sharedConstant].diamondLimit : diamond_;
+    [[SQLData sharedSQLiteData] savePlayerBaseData];
+    if (value < 0) {
+        [[DailyMission sharedSubMission] checkMissionWithType:numberOfCostDiamonds num:-value];
+    }
+}
+
+
+-(BOOL)isHaveDiamond:(long long)value
+{
+    if (diamond_ >= value) {
+        return YES;
+    }
+    return NO;
+}
+
+
+
+
+
+-(int)getDecorationMoneyWithState:(int)state decoration:(FarmDecoration *)decoration
+{
+    if (!decoration) {
+        return -1;
+    }
+    if (state == 0) {
+        return decoration.farmMoney;
+    }else {
+        return decoration.farmMoney / 10;
+    }
+}
+
+
+
+
+-(void)setHorseHaveStateWithId:(int)horseId sqlState:(BOOL)sqlState
+{
+    if (horseId > HORSEIDTOTAL) {
+        return;
+    }
+    if (!horseHaveState_->value[horseId] && sqlState) {
+        [newHorseIndexes_ addObject:[NSNumber numberWithInt:horseId]];
+        isGainNewHorse_ = YES;
+        [[Achievement sharedAchievement] checkAchievementWithType:collectPictureOfHorse targetId:-1 num:[self getNumOfHaveHorse]];
+    }
+    setShort1DArrayValue(&horseHaveState_, 1, horseId);
+    if (sqlState) {
+        //        [[SQLData sharedSQLiteData] saveHaveHorseStateWithHorseId:horseId];
+    }
+}
+
+-(Short1DArray)horseHaveState
+{
+    return horseHaveState_;
+}
+
+
+
+
+
+-(BOOL)isHaveSuitableHorseHome:(FarmHorse *)horse
+{
+    for (FarmBuild *build in buildArray_) {
+        if (build.buildType == FARMBUILDTYPE_HORSEHOME) {
+            if (![(FarmHorseHome *)build isHaveHorse] && build.buildLevel >= horse.quality) {
+                return YES;
+            }
+        }
+    }
+    return NO;
+}
+
+
+
+
+
+
+
+-(void)selectAvailableHorseHome
+{
+    for (FarmBuild *build in buildArray_) {
+        if (build.buildType == FARMBUILDTYPE_HORSEHOME) {
+            if ([(FarmHorseHome *)build isHaveHorse]) {
+                [build setSelectState:1];
+            }
+        }else {
+            [build setSelectState:1];
+        }
+    }
+    
+    
+    for (FarmHorse *horse in horseArray_) {
+        [horse setSelectState:1];
+    }
+    
+    for (FarmDecoration *decoration in decorationArray_) {
+        [decoration setSelectState:1];
+    }
+    
+}
+
+-(void)returnToNormalState
+{
+    for (FarmBuild *build in buildArray_) {
+        [build setSelectState:0];
+    }
+    
+    
+    for (FarmHorse *horse in horseArray_) {
+        [horse setSelectState:0];
+    }
+    
+    for (FarmDecoration *decoration in decorationArray_) {
+        [decoration setSelectState:0];
+    }
+    
+}
+
+
+
+-(BOOL)isHaveDecoration:(FarmDecoration *)decoration
+{
+    for (FarmDecoration *npc in decorationArray_) {
+        if (npc.decorationType == decoration.decorationType) {
+            return YES;
+        }
+    }
+    return NO;
+}
+
+
+-(void)addHorseHomeNumWithIndex:(int)index value:(int)value state:(BOOL)state
+{
+    horseHomeNum_[index] += value;
+    if (index == 2) {
+        horseHomeNum_[index] = horseHomeNum_[index] > [FarmDecorationData sharedFarmDecorationData].effectData -> value[AddHorseHomeNumTotal] -> value[1] ? [FarmDecorationData sharedFarmDecorationData].effectData -> value[AddHorseHomeNumTotal] -> value[1] : horseHomeNum_[index];
+    }
+    if (state) {
+        //       [[SQLData sharedSQLiteData] savePlayerBaseData];
+    }
+}
+
+
+-(void)setHorseHomeNumWithIndex:(int)index value:(int)value
+{
+    horseHomeNum_[index] = value;
+}
+
+
+
+-(int)horseHomeNumWithIndex:(int)index
+{
+    return horseHomeNum_[index];
+}
+
+
+-(void)clearHorse:(FarmHorse *)horse
+{
+    for (FarmBuild *npc in buildArray_) {
+        if (npc.buildType == FARMBUILDTYPE_HORSEHOME && [[(FarmHorseHome *)npc horse] isEqual:horse]) {
+            [(FarmHorseHome *)npc clearHorse];
+        }
+    }
+}
+
+
+//常量修改
+-(void)addAllHorseExpIncrease:(int)value state:(BOOL)state
+{
+    allHorseExpIncrease_ += value;
+    allHorseExpIncrease_ = allHorseExpIncrease_ < 0 ? 0 : allHorseExpIncrease_;
+    allHorseExpIncrease_ = allHorseExpIncrease_ > [Constant sharedConstant].horseExpAddLimit - 100 ? [Constant sharedConstant].horseExpAddLimit - 100 : allHorseExpIncrease_;
+    if (state) {
+        [[SQLData sharedSQLiteData] savePlayerBaseData];
+    }
+}
+
+//常量修改
+-(void)addAllHorseHealthIncrease:(int)value state:(BOOL)state
+{
+    allHorseHealthIncrease_ += value;
+    allHorseHealthIncrease_ = allHorseHealthIncrease_ < 0 ? 0 : allHorseHealthIncrease_;
+    allHorseHealthIncrease_ = allHorseHealthIncrease_ > [Constant sharedConstant].horseCleanLimit - 100 ? [Constant sharedConstant].horseCleanLimit - 100 : allHorseHealthIncrease_;
+    if (state) {
+        [[SQLData sharedSQLiteData] savePlayerBaseData];
+    }
+}
+
+//常量修改
+-(void)addAddVitalityRecoveryValue:(int)value state:(BOOL)state
+{
+    allHorseVitalityIncrease_ += value;
+    allHorseVitalityIncrease_ = allHorseVitalityIncrease_ < 0 ? 0 : allHorseVitalityIncrease_;
+    allHorseVitalityIncrease_ = allHorseVitalityIncrease_ > [Constant sharedConstant].energyAddLimit - 100 ? [Constant sharedConstant].energyAddLimit - 100 : allHorseVitalityIncrease_;
+    if (state) {
+        [[SQLData sharedSQLiteData] savePlayerBaseData];
+    }
+}
+
+
+
+-(int)isHealthOfHorse:(int)value
+{
+    int skip = 0;
+    for (FarmHorse *horse in horseArray_) {
+        if ([horse healthValueWithIndex:0] <= value) {
+            return skip;
+        }
+        skip ++;
+    }
+    return -1;
+}
+
+
+-(int)isVitalityOfHorse:(int)value
+{
+    int skip = 0;
+    for (FarmHorse *horse in horseArray_) {
+        if ([horse vitalitValueWithIndex:0] <= value) {
+            return skip;
+        }
+        skip ++;
+    }
+    return -1;
+}
+
+
+-(Short1DArray)matchState
+{
+    return matchState_;
+}
+
+
+-(void)setMatchStateWithId:(int)matchId state:(int)state sqlState:(BOOL)sqlState
+{
+    matchState_ -> value[matchId] = state;
+    if (sqlState) {
+        //        [[SQLData sharedSQLiteData] saveMatchStateWithKey:matchId state:state];
+    }
+}
+
+
+
+-(BOOL)isCanFarmExpansion
+{
+    return (farmMapLevel_ < FARMMAPLEVELTOTAL);
+}
+
+
+-(int)getBuyMoneyTypeWithId:(int)commodityId type:(int)commodityType
+{
+    switch (commodityType) {
+        case 0://道具
+            return [ItemData sharedItemData].buyMoney -> value[commodityId] -> value[0];
+        case 1://马
+            return [HorseData sharedHorseData].buyMoney -> value[commodityId] -> value[0];
+        case 2://建筑物
+            return [FarmBuildData sharedFarmBuildData].buyMoney -> value[commodityId] -> value[0];
+        case 3://装饰物
+            return [FarmDecorationData sharedFarmDecorationData].buyMoney -> value[commodityId] -> value[0];
+    }
+    return -1;
+}
+
+
+-(int)getBuyMoneyWithId:(int)commodityId type:(int)commodityType
+{
+    switch (commodityType) {
+        case 0://道具
+            return [ItemData sharedItemData].buyMoney -> value[commodityId] -> value[1];
+        case 1://马
+            return [HorseData sharedHorseData].buyMoney -> value[commodityId] -> value[1];
+        case 2://建筑物
+            return [FarmBuildData sharedFarmBuildData].buyMoney -> value[commodityId] -> value[1];
+        case 3://装饰物
+            return [FarmDecorationData sharedFarmDecorationData].buyMoney -> value[commodityId] -> value[1];
+    }
+    return -1;
+}
+-(void)buyCommodityWithId:(int)commodityId type:(int)commodityType num:(int)num FarmNpc:(FarmNpc*)npc{
+    int npcKeyID = 0;
+    switch (npc.spriteType) {
+        case SPRITETYPE_BUILD:
+            npcKeyID = [FarmBuildData sharedFarmBuildData].keyId -> value[[(FarmBuild *)npc buildType]];
+            break;
+        case SPRITETYPE_DECORATION:
+            npcKeyID = [FarmDecorationData sharedFarmDecorationData].keyId -> value[[(FarmDecoration *)npc decorationType]];
+            break;
+        case SPRITETYPE_HORSE:
+            npcKeyID = [HorseData sharedHorseData].keyId->value[[(FarmHorse *)npc horseId]];
+            break;
+        case SPRITETYPE_ITEM:
+            npcKeyID = [ItemData sharedItemData].keyId->value[[(FarmItem *)npc itemType]];
+        default:
+            break;
+    }
+    NSString* name = @"";
+    if ([npc isKindOfClass:NSClassFromString(@"FarmHorse")]) {
+        name = [(FarmHorse*)npc name];
+    }
+    if ([npc respondsToSelector:@selector(creatSqlKey)]) {
+        [npc creatSqlKey];
+    }
+    [[NetWorkMotionManager sharedNetWorkMotionManager] sendBuyGoodsSendMessageWithGoodsKeyID:npcKeyID GoodsId:npc.sqlKey count:num goodsName:name];
+    [self buyCommodityWithId:commodityId type:commodityType num:num];
+}
+
+-(void)buyCommodityWithId:(int)commodityId type:(int)commodityType num:(int)num
+{
+    int type = [self getBuyMoneyTypeWithId:commodityId type:commodityType];
+    switch (type) {
+        case 0:
+            [self addGameMoneyWithIndex:0 value:-[self getBuyMoneyWithId:commodityId type:commodityType] * num state:YES];
+            break;
+        case 1:
+            [self addDiamond:-[self getBuyMoneyWithId:commodityId type:commodityType] * num];
+            break;
+    }
+}
+
+-(int)getSellMoneyWithId:(int)commodityId type:(int)commodityType
+{
+    switch (commodityType) {
+        case 0://道具
+            return [ItemData sharedItemData].sellGameMoney -> value[commodityId];
+        case 1://马
+            return [HorseData sharedHorseData].sellGameMoney -> value[commodityId];
+        case 2://建筑物
+            return [FarmBuildData sharedFarmBuildData].sellGameMoney -> value[commodityId];
+        case 3://装饰物
+            return [FarmDecorationData sharedFarmDecorationData].sellGameMoney -> value[commodityId];
+    }
+    return -1;
+}
+
+
+-(void)sellCommodityWithId:(int)commodityId type:(int)commodityType num:(int)num
+{
+    [self addGameMoneyWithIndex:0 value:[self getSellMoneyWithId:commodityId type:commodityType] * num state:YES];
+}
+
+
+
+-(BOOL)isHaveMoneyWithId:(int)commodityId type:(int)commodityType num:(int)num
+{
+    int type = [self getBuyMoneyTypeWithId:commodityId type:commodityType];
+    switch (type) {
+        case 0:
+            return [self isHaveGameMoney:[self getBuyMoneyWithId:commodityId type:commodityType] * num];
+        case 1:
+            return [self isHaveDiamond:[self getBuyMoneyWithId:commodityId type:commodityType] * num];
+    }
+    return NO;
+}
+
+
+-(void)buildUpGradeWithId:(int)buildId level:(int)buildLevel
+{
+    int gameMoney = [FarmBuildData sharedFarmBuildData].upGradeGameMoney -> value[buildId] -> value[buildLevel];
+    [self addGameMoneyWithIndex:0 value:-gameMoney state:YES];
+    int diamond = [FarmBuildData sharedFarmBuildData].upGradeDiamond -> value[buildId] -> value[buildLevel];
+    [self addDiamond:-diamond];
+}
+
+
+-(int)isHaveMoneyToUpGradeWithId:(int)buildId level:(int)buildLevel
+{
+    int gameMoney = [FarmBuildData sharedFarmBuildData].upGradeGameMoney -> value[buildId] -> value[buildLevel];
+    if (![self isHaveGameMoney:gameMoney]) {
+        return 0;
+    }
+    int diamond = [FarmBuildData sharedFarmBuildData].upGradeDiamond -> value[buildId] -> value[buildLevel];
+    if (![self isHaveDiamond:diamond]) {
+        return 1;
+    }
+    return -1;
+}
+
+
+-(FarmBuild *)getFarmBuildWithId:(int)buildId
+{
+    for (FarmBuild *build in buildArray_) {
+        if (build.buildType == buildId) {
+            return build;
+        }
+    }
+    return nil;
+}
+
+-(void)addFriendWithGameID:(NSString*)gameId Contents:(NSMutableArray*)contents{
+    AttachContentBean* bean1 = [contents objectAtIndex:0];
+    NSString* name = bean1.content;
+    AttachContentBean* bean2 = [contents objectAtIndex:1];
+    int level = [bean2.content intValue];
+    AttachContentBean* bean3 = [contents objectAtIndex:2];
+    int icon = [bean3.content intValue];
+    [self addFriendWithGameId:gameId name:name level:level iconId:icon];
+}
+-(void)addFriendWithGameId:(NSString *)gameId name:(NSString *)name level:(int)level iconId:(int)iconId
+{
+    int key;
+    if (friendArray_.count > 0) {
+        FriendData *temp = [friendArray_ objectAtIndex:friendArray_.count - 1];
+        key = temp.sqlKey + 1;
+    }else {
+        key = 0;
+    }
+    FriendData *friend = [FriendData friendDataWithGameId:gameId name:name level:level iconId:iconId];
+    [friendArray_ addObject:friend];
+    [[MainMission sharedMainMission] checkMissionWithType:AddFriend name:-1 level:-1 other:-1 num:1];
+    [[Achievement sharedAchievement] checkAchievementWithType:numOfFriend targetId:-1 num:friendArray_.count];
+}
+
+-(void)removeFriendWithID:(NSString*)friendId{
+    int index = -1;
+    for (FriendData* friend in friendArray_) {
+        if ([friend.gameId isEqualToString:friendId]) {
+            index = [friendArray_ indexOfObject:friend];
+            break;
+        }
+    }
+    if (index != -1) {
+        [self removeFriendWithIndex:index];
+    }
+}
+
+-(void)removeFriendWithIndex:(int)index
+{
+    if (index < 0 || index >= friendArray_.count) {
+        return;
+    }
+    [friendArray_ removeObjectAtIndex:index];
+}
+-(void)removeFriend:(FriendData*)friendData_{
+    [[SQLData sharedSQLiteData] deleteSQLData:@"FRIENDDATA" primaryName:@"SQLKEY" primaryKey:friendData_.sqlKey];
+    [friendArray_ removeObject:friendData_];
+}
+
+-(void)removeAllRemoveDataArray
+{
+    [removeDataArray_ removeAllObjects];
+    [[SQLData sharedSQLiteData] removeAllRemoveData];
+}
+
+//0：马  1：建筑物  2：装饰物
+-(NSMutableArray *)getRemoveDataWithType:(int)type
+{
+    NSMutableArray *array = [NSMutableArray array];
+    if (type < 0 || type > 2) {
+        return array;
+    }
+    
+    for (RemoveData *temp in removeDataArray_) {
+        if (temp.npcKey / 100000 == type + 2) {
+            [array addObject:temp];
+        }
+    }
+    return array;
+}
+
+
+-(void)addRemoveDataArray:(int)npcKey sqlKey:(int)sqlKey
+{
+    RemoveData *temp = [RemoveData removeDataWithSqlKey:sqlKey npcKey:npcKey];
+    [removeDataArray_ addObject:temp];
+    [[SQLData sharedSQLiteData] saveRemoveDataWithIndex:removeDataArray_.count - 1 sqlKey:temp.sqlKey npcKey:temp.npcKey];
+}
+
+
+-(void)addRemoveFarmDataArray:(int)npcKey sqlKey:(int)sqlKey
+{
+    RemoveData *temp = [RemoveData removeDataWithSqlKey:sqlKey npcKey:npcKey];
+    [removeFarmDataArray_ addObject:temp];
+    [[SQLData sharedSQLiteData] saveRemoveFarmDataWithIndex:removeFarmDataArray_.count - 1 sqlKey:temp.sqlKey npcKey:temp.npcKey];
+}
+
+
+
+-(void)checkAndRemoveFarmData:(int)npcKey sqlKey:(int)sqlKey
+{
+    int i = 0;
+    for (RemoveData *data in removeFarmDataArray_) {
+        if (data.npcKey == npcKey && data.sqlKey == sqlKey) {
+            [[SQLData sharedSQLiteData] deleteSQLData:@"REMOVEFARMDATA" primaryName:@"REMOVEDATAINDEX" primaryKey:i];
+            return;
+        }
+        i ++;
+    }
+}
+
+
+
+//0：马  1：建筑物  2：装饰物
+-(NSMutableArray *)getRemoveFarmDataWithType:(int)type
+{
+    NSMutableArray *array = [NSMutableArray array];
+    if (type < 0 || type > 2) {
+        return array;
+    }
+    
+    for (RemoveData *temp in removeFarmDataArray_) {
+        if (temp.npcKey / 100000 == type + 2) {
+            [array addObject:temp];
+        }
+    }
+    return array;
+}
+
+-(void)removeAllRemoveFarmDataArray
+{
+    [removeFarmDataArray_ removeAllObjects];
+    [[SQLData sharedSQLiteData] removeAllRemoveFarmData];
+}
+
+
+
+
+
+-(NSMutableArray *)getHorseHomeAvailableHorse:(int)level
+{
+    NSMutableArray *array = [NSMutableArray array];
+    for (FarmHorse *horse in horsePack_) {
+        if (level >= horse.quality) {
+            [array addObject:horse];
+        }
+    }
+    return array;
+}
+
+
+-(BOOL)isHaveTrainingWithId:(int)buildId
+{
+    for (FarmBuild *build in buildArray_) {
+        if (build.buildType == buildId) {
+            return YES;
+        }
+    }
+    return NO;
+}
+
+
+-(FarmHorse *)getHorseWithSqlKey:(int)sqlKey
+{
+    for (FarmHorse *horse in horseArray_) {
+        if (horse.sqlKey == sqlKey) {
+            return horse;
+        }
+    }
+    return nil;
+}
+
+
+-(FarmHorse *)getHorseFormPackWithSqlKey:(int)sqlKey
+{
+    for (FarmHorse *horse in horsePack_) {
+        if (horse.sqlKey == sqlKey) {
+            return horse;
+        }
+    }
+    return nil;
+}
+
+
+-(int)getMaxSqlKeyWithArray:(NSArray*)array{
+    int maxSqlKey = 0;
+    for (FarmNpc* npc in array) {
+        if (npc.sqlKey > maxSqlKey) {
+            maxSqlKey = npc.sqlKey;
+        }
+    }
+    return maxSqlKey;
+}
+
+
+-(void)getFarmNpcMaxSqlKey{
+    NSArray* horses = [horseArray_ arrayByAddingObjectsFromArray:horsePack_];
+    NSArray* builds = [buildArray_ arrayByAddingObjectsFromArray:buildPack_];
+    NSArray* decorations = [decorationArray_ arrayByAddingObjectsFromArray:decorationPack_];
+    maxHorseSqlKey = [self getMaxSqlKeyWithArray:horses];
+    maxBuildSqlKey = [self getMaxSqlKeyWithArray:builds];
+    maxDecorationSqlKey = [self getMaxSqlKeyWithArray:decorations];
+}
+
+
+-(int)getNumOfHorseWithQuality:(int)quality
+{
+    int num = 0;
+    for (FarmHorse *horse in horseArray_) {
+        if (horse.quality == quality) {
+            num ++;
+        }
+    }
+    return num;
+}
+
+
+-(int)getTapLevelOfHorseArray
+{
+    int level = 0;
+    for (FarmHorse *horse in horseArray_) {
+        if (horse.level > level) {
+            level = horse.level;
+        }
+    }
+    return level;
+}
+
+-(int)getTapLevelOfTraining
+{
+    int level = 0;
+    for (FarmBuild *build in buildArray_) {
+        switch (build.buildType) {
+            case FARMBUILDTYPE_TRAININGFIELD_AGILE:
+            case FARMBUILDTYPE_TRAININGFIELD_POWER:
+            case FARMBUILDTYPE_TRAININGFIELD_SPEED:
+                if (build.buildLevel > level) {
+                    level = build.buildLevel;
+                }
+                break;
+        }
+    }
+    return level;
+}
+
+
+-(int)getNumOfHaveHorse
+{
+    int num = 0;
+    for (int i = 0, length = horseHaveState_ -> length; i < length; i ++) {
+        if (getShort1DArrayValue(&horseHaveState_, i)) {
+            num ++;
+        }
+    }
+    return num;
+}

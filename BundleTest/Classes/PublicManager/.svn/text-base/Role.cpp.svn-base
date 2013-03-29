@@ -1,0 +1,105 @@
+//
+//  Role.cpp
+//  SMSDX
+//
+//  Created by  陈广文 on 13-2-28.
+//
+//
+
+#include "Role.h"
+#include "FarmBuild.h"
+#include "CWAUseIDConverser.h"
+#include "Util.h"
+#include "cocos2d.h"
+#include "Define.h"
+USING_NS_CC;
+//@implementation Role
+//
+//@synthesize playerIconId = playerIconId_;
+//@synthesize playerType = playerType_;
+//@synthesize gameCenterName = gameCenterName_;
+//@synthesize name = name_;
+//@synthesize gameId = gameId_;
+//@synthesize level = level_;
+//@synthesize farmMapId = farmMapId_;
+//@synthesize farmMapLevel = farmMapLevel_;
+//@synthesize horseArray = horseArray_;
+//@synthesize buildArray = buildArray_;
+//@synthesize decorationArray = decorationArray_;
+//@synthesize buildPack = buildPack_;
+//@synthesize horsePack = horsePack_;
+//@synthesize decorationPack = decorationPack_;
+//@synthesize macId = macId_;
+//@synthesize gameIdNum = gameIdNum_;
+
+
+bool Role::init()
+{
+//    if (self == [super init]) {
+    horseArray_ =new CCArray;
+//    horseArray_->retain();
+    
+        buildArray_ = new CCArray;
+        decorationArray_ =new CCArray;
+//    }
+    return true;
+}
+
+
+
+Role::~Role()
+{
+    horseArray_-> removeAllObjects();
+    horseArray_-> release();
+    horseArray_ = nil;
+    buildArray_-> removeAllObjects();
+    buildArray_-> release();
+    buildArray_ = nil;
+    decorationArray_-> removeAllObjects();
+    decorationArray_-> release();
+    decorationArray_ = nil;
+//    [super dealloc];
+}
+
+
+int Role::getTrainingLevelWithType(int type)
+{
+    for (int i=0; i<buildArray_->count(); i++) {
+        FarmBuild *build=(FarmBuild *)buildArray_->objectAtIndex(i);
+        if (build->getBuildType() == type + 2) {
+            return build->getBuildLevel();
+        }
+    }
+//    for (FarmBuild *build in buildArray_) {
+//        if (build.buildType == type + 2) {
+//            return build.buildLevel;
+//        }
+//    }
+    return -1;
+}
+
+
+void Role::cleanRole()
+{
+    horseArray_-> removeAllObjects();
+    buildArray_-> removeAllObjects();
+    decorationArray_-> removeAllObjects();
+}
+
+int Role::getFarmHomeLevel()
+{
+    
+    for (int i=0; i<buildArray_->count(); i++) {
+        FarmBuild *build=(FarmBuild *)buildArray_->objectAtIndex(i);
+        if (build->getBuildType() == FARMBUILDTYPE_HOME) {
+            return build->getBuildLevel();
+        }
+    }
+    
+//    for (FarmBuild *build in buildArray_) {
+//        if (build.buildType == FARMBUILDTYPE_HOME) {
+//            return build.buildLevel;
+//        }
+//    }
+    return -1;
+}

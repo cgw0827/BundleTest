@@ -1,0 +1,38 @@
+//
+//  GameTimer.h
+//  SMSDX
+//
+//  Created by  陈广文 on 13-3-1.
+//
+//
+
+#ifndef __SMSDX__GameTimer__
+#define __SMSDX__GameTimer__
+
+#include <iostream>
+#include "GameData.h"
+#include "cocos2d.h"
+class GameTimer :public cocos2d::CCObject{
+//    long int gameTime_;         //游戏时间
+    float delay_;               //游戏时间延迟
+    CC_SYNTHESIZE(long int,gameTime_, GameTime);
+    static GameTimer * sharedGameTimer();
+    static void clearGameTimer();
+    void setTime(long int time);
+    void process();
+    int hour();
+    int minute();
+    int second();
+};
+
+//@property (nonatomic, readwrite) long int gameTime;
+
+
+//+(GameTimer *)sharedGameTimer;
+//+(void)clearGameTimer;
+//-(void)setTime:(long int)time;
+//-(void)process;
+//-(int)hour;
+//-(int)minute;
+//-(int)second;
+#endif /* defined(__SMSDX__GameTimer__) */

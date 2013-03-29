@@ -1,0 +1,41 @@
+//
+//  FriendData.cpp
+//  SMSDX
+//
+//  Created by  陈广文 on 13-2-28.
+//
+//
+
+#include "FriendData.h"
+#include "cocos2d.h"
+USING_NS_CC;
+
+FriendData* FriendData::friendDataWithGameId(CCString * gameId,CCString * name,int level,int iconId)
+{
+    FriendData* temp=new FriendData();
+    temp->initFriendDataWithGameId(gameId, name, level, iconId);
+    temp->autorelease();
+    return temp;
+//    return [[[self alloc] initFriendDataWithGameId:gameId name:name level:level iconId:iconId] autorelease];
+}
+
+
+void FriendData::initFriendDataWithGameId(CCString * gameId,CCString * name,int level,int iconId)
+{
+//    if (self == [super init]) {
+        gameId_ = gameId;
+        gameId->retain();
+        name_ = name;
+        name_->retain();
+        level_= level;
+        playerIconId_ = iconId;
+//    }
+//    return this;
+}
+
+FriendData::~FriendData()
+{
+    gameId_-> release();
+    name_ ->release();
+//    [super dealloc];
+}

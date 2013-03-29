@@ -1,0 +1,33 @@
+//
+//  Friend.h
+//  SMSDX
+//
+//  Created by  陈广文 on 13-2-28.
+//
+//
+
+#ifndef __SMSDX__Friend__
+#define __SMSDX__Friend__
+
+#include <iostream>
+#include "Role.h"
+#include "cocos2d.h"
+#include "Define.h"
+class Friend :public Role {
+//    BOOL friendFightable;
+//    BOOL isRandomTreasureable;
+    CC_SYNTHESIZE(bool, friendFightable, FriendFightable);
+    CC_SYNTHESIZE(bool, isRandomTreasureable, IsRandomTreasureable);
+    void newFarmHorseWithId(int horseId,int age);
+    bool init();
+    void newFarmBuildWithId(int buildId,int level,cocos2d::CCPoint pos,int faceto,FarmHorse * horse);
+    void newFarmDecorationWithId(int buildId,cocos2d::CCPoint pos ,int faceto);
+
+};
+//@property BOOL friendFightable;
+//@property BOOL isRandomTreasureable;
+//-(void)newFarmHorseWithId:(int)horseId Age:(int)age;
+//-(void)newFarmBuildWithId:(int)buildId Level:(int)level Pos:(CGPoint)pos FaceTo:(int)faceto Horse:(FarmHorse *)horse;
+//-(void)newFarmDecorationWithId:(int)buildId Pos:(CGPoint)pos FaceTo:(int)faceto;
+
+#endif /* defined(__SMSDX__Friend__) */

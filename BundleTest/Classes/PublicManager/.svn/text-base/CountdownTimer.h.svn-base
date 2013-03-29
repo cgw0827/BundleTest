@@ -1,0 +1,50 @@
+//
+//  CountdownTimer.h
+//  SMSDX
+//
+//  Created by  陈广文 on 13-2-28.
+//
+//
+
+#ifndef __SMSDX__CountdownTimer__
+#define __SMSDX__CountdownTimer__
+#include "Define.h"
+#include <iostream>
+#include "GameData.h"
+#include "cocos2d.h"
+class CountdownTimer :public cocos2d::CCObject{
+    long int time_;            //时间
+    float delay_;         //延迟
+//    BOOL isFinished_;     //是否完成
+    CC_SYNTHESIZE(BOOL, isFinished_, IsFinished);
+    
+public:
+    static CountdownTimer* node();
+    bool init();
+    int hour();
+    int minute();
+    int second();
+    int time();
+    BOOL isFinished();
+    void setTime(long int time);
+    void setTime(int hour,int minute,int second);
+    void process();
+    void resetTime();
+};
+
+//@property (nonatomic, readwrite) BOOL isFinished;
+
+
+//+(id)node;
+//-(int)hour;
+//-(int)minute;
+//-(int)second;
+//-(int)time;
+//-(BOOL)isFinished;
+//-(void)setTime:(long int)time;
+//-(void)setTime:(int)hour minute:(int)minute second:(int)second;
+//-(void)process;
+//-(void)resetTime;
+
+
+#endif /* defined(__SMSDX__CountdownTimer__) */

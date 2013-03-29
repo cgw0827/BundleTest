@@ -1,0 +1,30 @@
+//
+//  RemoveData.h
+//  SMSDX
+//
+//  Created by  陈广文 on 13-2-28.
+//
+//
+
+#ifndef __SMSDX__RemoveData__
+#define __SMSDX__RemoveData__
+
+#include <iostream>
+#include "cocos2d.h"
+class RemoveData :public cocos2d::CCObject{
+//    int sqlKey_;
+//    int npcKey_;
+public:
+    CC_SYNTHESIZE(int, sqlKey_, SqlKey);
+    CC_SYNTHESIZE(int, npcKey_, NpcKey);
+    static RemoveData* removeDataWithSqlKey(int sqlKey,int npcKey);
+    void initRemoveDataWithSqlKey(int sqlKey,int npcKey);
+};
+
+//@property (nonatomic, readonly) int sqlKey;
+//@property (nonatomic, readonly) int npcKey;
+//
+//+(id)removeDataWithSqlKey:(int)sqlKey npcKey:(int)npcKey;
+//-(id)initRemoveDataWithSqlKey:(int)sqlKey npcKey:(int)npcKey;
+
+#endif /* defined(__SMSDX__RemoveData__) */

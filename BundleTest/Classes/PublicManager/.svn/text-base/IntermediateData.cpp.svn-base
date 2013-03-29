@@ -1,0 +1,253 @@
+//
+//  IntermediateData.cpp
+//  SMSDX
+//
+//  Created by  陈广文 on 13-3-1.
+//
+//
+
+#include "IntermediateData.h"
+#include "RaceHorse.h"
+#include "DataManager.h"
+#include "MatchData.h"
+#include "HorseData.h"
+#include "cocos2d.h"
+#include "BaseData.h"
+USING_NS_CC;
+//@implementation IntermediateData
+
+//@synthesize raceType = raceType_;
+//@synthesize trophyType = trophyType_;
+//@synthesize raceId = raceId_;
+//@synthesize playerHorseArray = playerHorseArray_;
+//@synthesize otherHorseArray = otherHorseArray_;
+//@synthesize gamblingType = gamblingType_;
+//@synthesize gamglingHorseType = gamglingHorseType_;
+//@synthesize numOfOperableHorse = numOfOperableHorse_;
+//@synthesize raceRank = raceRank_;
+//@synthesize numOfRunway = numOfRunway_;
+//@synthesize isDoubleBonus = isDoubleBonus_;
+//@synthesize gamblingMoney = gamblingMoney_;
+
+
+static IntermediateData *intermediateData_;
+
+IntermediateData * IntermediateData::sharedIntermediateData()
+{
+    if (!intermediateData_) {
+        intermediateData_ = new IntermediateData();
+        intermediateData_->init();
+    }
+    return intermediateData_;
+}
+
+void IntermediateData::clearIntermediateData()
+{
+    intermediateData_-> release();
+    intermediateData_ = nil;
+}
+
+
+bool IntermediateData::init()
+{
+//    if (self == [super init]) {
+        playerHorseArray_ =new CCArray;
+        otherHorseArray_ =new CCArray;
+//    }
+    return self;
+}
+
+
+
+int IntermediateData::getRaceDataIndex()
+{
+    switch (trophyType_) {
+        case 0:
+            return raceId_;
+        case 1:
+            return raceId_ + 20;
+        case 2:
+            return raceId_ + 40;
+        case 3:
+            return raceId_ + 55;
+    }
+    return -1;
+}
+
+
+
+void IntermediateData::removeHorseArray()
+{
+    //    for (RaceHorse *horse0 in playerHorseArray_) {
+    //        [horse0 unscheduleUpdate];
+    //    }
+    otherHorseArray_-> removeAllObjects();
+    playerHorseArray_-> removeAllObjects();
+    
+}
+
+
+void IntermediateData::showPlayerHorseRetainCount()
+{
+    //    RaceHorse *horse = playerHorseArray_ ->objectAtIndex(0);
+    //    CCLog("horse.retainCount0 = %d",horse->getRetainCount());
+}
+
+BOOL isActiveSkill(int skill)
+{
+    switch (skill) {
+        case HORSESKILL_SPRINT:
+        case HORSESKILL_VERTIGO:
+        case HORSESKILL_INTERFERENCESPRINT:
+        case HORSESKILL_RAPIDSPRINT:
+        case HORSESKILL_TRAFFICLIGHT:
+        case HORSESKILL_PROTETIVECOVER:
+        case HORSESKILL_RANGEATTACK:
+        case HORSESKILL_KAIQIANG:
+            return YES;
+    }
+    return NO;
+}
+
+
+-void IntermediateData::addPlayerHorseWithId(int horseId,CCString * name, int stage,CGFloat speed,CGFloat agile,GFloat power,CGFloat energy,Short1DArray skill,int index,int level)
+{
+    RaceHorse *horse = RaceHorse::raceHorseWithId(horseId ,stage,level);
+    horse->setHorseName(name);
+    horse->setHorseSpeed(speed);
+    horse->setHorseJump(agile);
+    horse->setHorsePower(power);
+    horse->setHorseEnergyData();
+    horse->setFarmHorseArrayIndex(index);
+    int runwayType = MatchData::sharedMatchData()->getTrackType() -> value[raceId_];
+    if (skill != nil) {
+        for (int i = 0, length = skill -> length; i < length; i ++) {
+            switch (getShort1DArrayValue(&skill, i)) {
+                case HORSESKILL_SPRINT:
+                case HORSESKILL_VERTIGO:
+                case HORSESKILL_INTERFERENCESPRINT:
+                case HORSESKILL_RAPIDSPRINT:
+                case HORSESKILL_TRAFFICLIGHT:
+                case HORSESKILL_PROTETIVECOVER:
+                case HORSESKILL_RANGEATTACK:
+                case HORSESKILL_KAIQIANG:
+                    horse-> setSkillData(getShort1DArrayValue(&skill, i),HorseData:: sharedHorseData()->getSkillCdTime() -> value[getShort1DArrayValue(&skill, i)]);
+                    break;
+                case HORSESKILL_HIGHWAY:
+                    if (runwayType == 1) {
+                        speed += speed * 0.1f;
+                    }
+                    break;
+                case HORSESKILL_GRASSLAND:
+                    if (runwayType == 0) {
+                        speed += speed * 0.1f;
+                    }
+                    break;
+                case HORSESKILL_SNOW:
+                    if (runwayType == 4) {
+                        speed += speed * 0.1f;
+                    }
+                    break;
+                case HORSESKILL_MUD:
+                    if (runwayType == 2) {
+                        speed += speed * 0.1f;
+                    }
+                    break;
+                case HORSESKILL_GRAVELROADG:
+                    if (runwayType == 3) {
+                        speed += speed * 0.1f;
+                    }
+                    break;
+                case HORSESKILL_FAST:
+                    break;
+                case HORSESKILL_RESOLUTE:
+                    break;
+                case HORSESKILL_AGIL:
+                    break;
+                case HORSESKILL_DOUBLEGOLD:
+                    isDoubleBonus_ += 100;
+                    break;
+            }
+        }
+    }
+    
+    playerHorseArray_-> addObject(horse);
+    //    [horse autorelease];
+}
+
+
+void IntermediateData::addOtherHorseWithId(int horseId,CCString * name,int stage,CGFloat speed,CGFloat agile,CGFloat power,CGFloat energy,Short1DArray skill,int level);
+{
+    RaceHorse *horse = RaceHorse::raceHorseWithId(horseId,stage,level);
+    horse->setHorseName(name);
+    horse->setHorseSpeed(speed);
+    horse->setHorseJump(agile);
+    horse->setHorsePower(power);
+    horse-> setHorseEnergyData();
+    int runwayType = MatchData:: sharedMatchData()->getTrackType() -> value[raceId_];
+    if (skill != nil) {
+        for (int i = 0, length = skill -> length; i < length; i ++) {
+            switch (getShort1DArrayValue(&skill, i)) {
+                case HORSESKILL_SPRINT:
+                case HORSESKILL_VERTIGO:
+                case HORSESKILL_INTERFERENCESPRINT:
+                case HORSESKILL_RAPIDSPRINT:
+                case HORSESKILL_TRAFFICLIGHT:
+                case HORSESKILL_PROTETIVECOVER:
+                case HORSESKILL_RANGEATTACK:
+                case HORSESKILL_KAIQIANG:
+                horse-> setSkillData(getShort1DArrayValue(&skill, i),HorseData::sharedHorseData()->getSkillCdTime() -> value[getShort1DArrayValue(&skill, i)]);
+                    break;
+                case HORSESKILL_HIGHWAY:
+                    if (runwayType == 1) {
+                        speed += speed * 0.1f;
+                    }
+                    break;
+                case HORSESKILL_GRASSLAND:
+                    if (runwayType == 0) {
+                        speed += speed * 0.1f;
+                    }
+                    break;
+                case HORSESKILL_SNOW:
+                    if (runwayType == 4) {
+                        speed += speed * 0.1f;
+                    }
+                    break;
+                case HORSESKILL_MUD:
+                    if (runwayType == 2) {
+                        speed += speed * 0.1f;
+                    }
+                    break;
+                case HORSESKILL_GRAVELROADG:
+                    if (runwayType == 3) {
+                        speed += speed * 0.1f;
+                    }
+                    break;
+                case HORSESKILL_FAST:
+                    break;
+                case HORSESKILL_RESOLUTE:
+                    break;
+                case HORSESKILL_AGIL:
+                    break;
+                case HORSESKILL_DOUBLEGOLD:
+                    break;
+            }
+        }
+    }
+    otherHorseArray_-> addObject(horse);
+    //    [horse autorelease];
+}
+
+
+
+
+BOOL IntermediateData::checkSkill(int skill,Short1DArray skillArray)
+{
+    for (int i = 0, length = skillArray -> length; i < length; i ++) {
+        if (skillArray -> value[i] == skill) {
+            return YES;
+        }
+    }
+    return NO;
+}
+

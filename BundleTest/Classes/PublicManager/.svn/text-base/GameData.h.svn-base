@@ -1,0 +1,534 @@
+//
+//  GameData.h
+//  SMSDX
+//
+//  Created by  陈广文 on 13-2-21.
+//
+//
+
+#ifndef __SMSDX__GameData__
+#define __SMSDX__GameData__
+
+#include <iostream>
+#import "cocos2d.h"
+USING_NS_CC;
+
+
+#pragma mark -
+#pragma mark 游戏中公用的宏定义
+
+
+#define GAME_FPS            30          //游戏帧数
+
+
+#define SCREEN_WIDTH        CCDirector::sharedDirector()->getWinSize().width
+#define SCREEN_HEIGHT       CCDirector::sharedDirector()->getWinSize().height
+
+#define TRANS_NONE            0
+#define TRANS_MIRROR_ROT180   1
+#define TRANS_MIRROR          2
+#define TRANS_ROT180          3
+#define TRANS_MIRROR_ROT270   4
+#define TRANS_ROT90           5
+#define TRANS_ROT270          6
+#define TRANS_MIRROR_ROT90    7
+
+
+
+
+static inline int getModuleW(int trans, int w, int h) {
+
+    switch (trans) {
+        case TRANS_ROT90:
+        case TRANS_ROT270:
+        case TRANS_MIRROR_ROT90:
+        case TRANS_MIRROR_ROT270:
+            return h;
+    }
+    return w;
+}
+
+static inline int getModuleH(int trans, int w, int h) {
+    switch (trans) {
+        case TRANS_ROT90:
+        case TRANS_ROT270:
+        case TRANS_MIRROR_ROT90:
+        case TRANS_MIRROR_ROT270:
+            return w;
+    }
+    return h;
+}
+
+
+
+
+//锚点
+#define BL              36
+#define BR              40
+#define BH              33
+#define TL              20
+#define TR              24
+#define TH              17
+#define VL              6
+#define VR              10
+#define VH              3
+
+static inline CCPoint setAnchor(int anchor){
+    switch (anchor) {
+        case TL:
+            return ccp(0.0f, 1.0f);
+        case TR:
+            return ccp(1.0f, 1.0f);
+        case TH:
+            return ccp(0.5f, 1.0f);
+        case VL:
+            return ccp(0.0f, 0.5f);
+        case VR:
+            return ccp(1.0f, 0.5f);
+        case VH:
+            return ccp(0.5f, 0.5);
+        case BL:
+            return ccp(0.0f, 0.0f);
+        case BR:
+            return ccp(1.0f, 0.0f);
+        case BH:
+            return ccp(0.5f, 0.0f);
+        default:
+            return ccp(0.0f, 1.0f);
+    }
+}
+
+
+
+
+//设置屏幕和绘制的宽度
+#define WIDTH                      CCDirector::sharedDirector()->getWinSize().width  //设置屏幕的宽
+#define HEIGHT                     CCDirector::sharedDirector()->getWinSize().height  //设置屏幕的高
+#define VIEWWIDTH                  960  //设置观察时候的宽
+#define VIEWHEIGHT                 640  //设置观察时候的高
+
+//面向
+#define DIR_NOMOVE                -1
+#define DIR_LEFT                   0
+#define DIR_RIGHT                  1
+#define DIR_DOWN                   0
+#define DIR_UP                     1
+
+
+#define OPACITY_OPAQUE             255
+#define OPACITY_TRANSLUCENT        127
+
+#define TILE_WIDTH                 64
+#define TILE_HEIGHT                32
+#define FARMNPC_OFFSET
+
+
+#define TILE_WIDTH       64//单个碰撞框的宽度
+#define TILE_HEIGHT      32//单个碰撞框的高度
+#define COLIMAGE_NUM      2//碰撞图片的数量
+
+
+#define CC_POINT_PIXELS_TO_POINTS(__pixels__)																		\
+CCPointMake( (__pixels__).x / CC_CONTENT_SCALE_FACTOR(), (__pixels__).y / CC_CONTENT_SCALE_FACTOR())
+//#define mapinfoToMapFile(id, level) [[[NSString alloc]initWithString:[NSString stringWithFormat:@"farmMap%d_%d.tmx",id,level]] autorelease]
+//#define mapinfoToFarmBuildFile(id, level) [[[NSString alloc]initWithString:[NSString stringWithFormat:@"fb_%d_%d.data",id,level]] autorelease]
+#define mapinfoToMapFile(id, level) CCSString::create(CCString::createWithFormat("farmMap%d_%d.tmx",id,level))
+#define mapinfoToFarmBuildFile(id, level) CCSString::create(CCString::createWithFormat("fb_%d_%d.data",id,level))
+static inline CCPoint getTilePosWithRealPos(CCPoint location, CCTMXTiledMap *tileMap)
+{
+    CCPoint pos = ccpSub(location, tileMap->getPosition());
+    
+    
+    float halfMapWidth = tileMap->getMapSize().width * 0.5;//横向地图图块数量的一半
+    float mapHeight = tileMap->getMapSize().height;//纵向地图图块的数量
+    float tileWidth = tileMap->getTileSize().width / CC_CONTENT_SCALE_FACTOR();//地图图块的宽度
+    float tileHeight = tileMap->getTileSize().height / CC_CONTENT_SCALE_FACTOR();//地图图块的高度
+    
+    
+    CCPoint tilePosDiv = CCPointMake(pos.x / tileWidth, pos.y / tileHeight);//装换成地板格
+    float inverseTileY = mapHeight - tilePosDiv.y;
+    
+    //将得到的计算结果转换成int，以确保得到的是整数
+    float posX = (int)(inverseTileY + tilePosDiv.x - halfMapWidth);
+    float posY = (int)(inverseTileY - tilePosDiv.x + halfMapWidth);
+    
+    
+    return CCPointMake(posX, posY);
+    
+}
+
+
+static inline CCPoint getRealPosWithTilePos(CCPoint tilePos, CCTMXTiledMap *tileMap)
+{
+    //获取地板层
+    CCTMXLayer *layer = tileMap->layerNamed("Ground");
+    if(layer == NULL)
+    {
+        CCLog("Ground layer not found");
+    }
+    //仅在内部使用：瓷砖的Y坐标要减去1
+    //    tilePos.y -= 1;
+    //获取瓷砖坐标处以像素表示的坐标信息
+    CCPoint scrollPosition = CC_POINT_PIXELS_TO_POINTS(layer->positionAt(tilePos));
+    
+    
+    return scrollPosition;
+}
+
+
+static inline CCFloat getFarmNpcOffsetX()
+{
+    return TILE_WIDTH / CC_CONTENT_SCALE_FACTOR() / 2;
+}
+
+
+
+static inline CCFloat getFarmNpcOffsetY()
+{
+    return 8;
+}
+
+
+
+
+
+//动作编辑器各数据的长度
+#define MODULE_MAX_COUNT             5             //切片数据的长度
+#define FRAME_MAX_COUNT             11             //帧数据的长度
+#define ACTION_MAX_COUNT             2             //动作数据的长度
+
+
+
+
+typedef enum
+{
+    France = 0,//0法国
+    Germany,//1德国
+    America,//2美国
+    Britain,//3英国
+    Greece,//4希腊
+    SaudiArabia,//5沙特
+    Spain,//6西班牙
+    China,//7中国
+    Iran,//8伊朗
+    Holland,//9荷兰
+    Argentina,//10阿根廷
+    Japan,//11日本
+    Russia,//12俄罗斯
+    Ireland,//13爱尔兰
+    Nigeria//14尼日利亚
+}HorseNationality;//15马的国际
+
+
+
+
+
+//动作状态
+#define ACT_STAND                    0        //站立
+#define ACT_WAGTAIL                  1        //摇尾巴
+#define ACT_KICKING                  2        //踢腿
+#define ACT_WAGTAILANDKICKING        3        //踢腿接摇尾巴
+#define ACT_TRAINING                 4        //训练
+#define ACT_RUNNING                  5        //跑
+#define ACT_JUMP                     6        //跳跃
+#define ACT_ATTACK                   7        //攻击
+#define ACT_BEHURT                   8        //被攻击
+#define ACT_DECELERATION             9        //减速（比赛结束）
+#define ACT_GETREADY                 10       //准备
+#define ACT_RUNFINISH                11       //结束
+#define ACT_UPGRADE                  12       //升级
+#define ACT_NOSTAND                  13
+#define ACT_Building                 14       //建造
+#define ACT_PIZHONG                  15       //被闪电劈中
+#define ACT_FORCEDSTAND              16       //被迫站立
+#define ACT_OPEN                     17       //打开
+#define ACT_LOCK                     18       //锁住
+
+
+
+//比赛状态
+#define RACEHORSE_READY              0        //准备阶段
+#define RACEHORSE_RUNNING            1        //比赛阶段
+#define RACEHORSE_FINISH             2        //结束
+
+
+
+//被击打状态
+#define HURT_BEHURTFLY               0
+#define HURT_BROKEN                  1
+#define HURT_FLYDOWN                 2
+#define HURT_BLINK                   3
+
+
+
+//障碍物的类型
+#define RAILING                      0        //栏杆
+#define WALL                         1        //墙
+#define POOL                         2        //水池
+#define MAGIC                        3        //魔法阵
+
+//碰撞框的类型
+#define COLLIDETYPE_ATTACK           0        //攻击框
+#define COLLIDETYPE_BEATTACK         1        //被攻击框
+
+//AI的状态
+#define AI_INIT                      0        //初始状态
+#define AI_ATTACK                    1        //攻击状态
+#define AI_STOP                      2        //停止状态
+
+
+//debuff状态
+#define DEBUFFSTATE_DECELERATION     0        //减速
+#define DEBUFFSTATE_DIZZY            1        //晕眩
+#define DEBUFFSTATE_POOL             2        //水池减速
+#define DEBUFFSTATE_INTERFERENCE     3        //干扰冲刺
+#define DEBUFFSTATE_WEAK             4        //虚弱状态
+
+
+
+
+//精灵的类型
+#define SPRITETYPE_HORSE             0        //马
+#define SPRITETYPE_BUILD             1        //建筑物
+#define SPRITETYPE_EFFECT            2        //光效
+#define SPRITETYPE_OBSTACLE          3        //障碍物
+#define SPRITETYPE_DECORATION        4        //装饰物
+#define SPRITETYPE_ITEM              5        //道具
+#define SPRITETYPE_TREASURE          6        //宝物
+
+
+//比赛的相关数据
+#define RUNWAYWIDTH                    80          //跑道的宽度
+#define RACEHORSE_Z                    100         //
+#define OBSTACLE_Z                     50
+#define MAP_Z                          1
+#define NUMOFOPERABLEHORSE             3           //第几个赛道为主角马
+#define NUMOFRUNWAY                    6
+
+//生存状态
+#define ALIVESTATE_INIT                3
+#define ALIVESTATE_DEAD                0           //死
+#define ALIVESTATE_LIVE                1           //活
+#define ALIVESTATE_JUMP                2
+//光效的类型
+#define EFFTYPE_EFFECT                 0           //普通光效
+#define EFFTYPE_FLYOBJ                 1           //攻击特效
+#define EFFTYPE_DEBUFF                 2           //debuff光效
+
+
+//创建各类精灵的数量
+#define EFFECTNUM                      10          //光效
+
+
+//光效的位置状态
+#define EFFPOSSTATE_USER                      0           //召唤者位置
+#define EFFPOSSTATE_ACTONROLE                 1           //作用者位置
+#define EFFPOSSTATE_FOLLOWACTONROLE           2           //跟随作用者
+#define EFFPOSSTATE_SPEEDEQUALTOUSER          3           //速度等于作用者
+
+
+
+
+//作用者的类型
+#define ACTONROLETYPE_OWN                     0           //自己
+#define ACTONROLETYPE_INFRONTOFUSER           1           //前面一个人
+#define ACTONROLETYPE_ALLENEMY                2           //所有敌人
+
+
+//光效的生存状态
+#define ALIVETYPE_TOTHEGROUND              0              //落地
+#define ALIVETYPE_HIT                      1              //击中
+#define ALIVETYPE_COUNTDOWN                2              //倒计时
+#define ALIVETYPE_H_OUTOFTHESCREEN         3              //横向出屏幕
+#define ALIVETYPE_PLAYONCE                 4              //播放一次
+#define ALIVETYPE_PARTICLEPLAYONCE         5              //粒子特效播放一次
+
+
+
+//攻击方式
+#define ATTACKTYPE_NODELAY                    0           //无攻击延迟
+#define ATTACKTYPE_DELAY                      1           //有攻击延迟
+
+//比赛的类型
+#define RACETYPE_RACINGGAME                   0           //竞速赛
+#define RACETYPE_OBSTACLE_AGILE               1           //灵活障碍赛
+#define RACETYPE_OBSTACLE_POWER               2           //力量障碍赛
+#define RACETYPE_OBSTACLE_MIX                 3           //混合障碍赛
+#define RACETYPE_RELAY                        4           //接力赛
+
+//马的技能
+#define HORSESKILL_SPRINT                     0           //冲刺
+#define HORSESKILL_VERTIGO                    1           //眩晕攻击
+#define HORSESKILL_HIGHWAY                    2           //擅长公路
+#define HORSESKILL_GRASSLAND                  3           //擅长草地
+#define HORSESKILL_SNOW                       4           //擅长雪地
+#define HORSESKILL_MUD                        5           //擅长泥地
+#define HORSESKILL_GRAVELROADG                6           //擅长碎石路
+#define HORSESKILL_FAST                       7           //天生快速
+#define HORSESKILL_RESOLUTE                   8           //天生刚毅
+#define HORSESKILL_AGIL                       9           //天生敏捷
+#define HORSESKILL_DOUBLEGOLD                 10          //双倍金币
+#define HORSESKILL_INTERFERENCESPRINT         11          //干扰冲刺
+#define HORSESKILL_RAPIDSPRINT                12          //急速冲刺
+#define HORSESKILL_TRAFFICLIGHT               13          //红绿灯
+#define HORSESKILL_PROTETIVECOVER             14          //保护罩
+#define HORSESKILL_RANGEATTACK                15          //闪电
+#define HORSESKILL_KAIQIANG                   16          //开枪
+
+
+//杯赛类型
+#define TROPHYTYPE_COMMUNITY                  0           //社区
+#define TROPHYTYPE_COUNTRY                    1           //国家
+#define TROPHYTYPE_WORLD                      2           //环球
+#define TROPHYTYPE_SPECIAL                    3           //特殊
+
+
+
+
+//游戏状态
+#define GAMESTATE_FARM                        0           //农场
+#define GAMESTATE_RACE                        1           //比赛
+#define GAMESTATE_SELECTMATCH                 2           //选择比赛
+
+
+
+
+//马的品质
+#define HORSEQUALITY_S                        0           //
+#define HORSEQUALITY_A                        1
+#define HORSEQUALITY_B                        2
+#define HORSEQUALITY_C                        3
+#define HORSEQUALITY_D                        4
+
+
+#define BUILDPACKNUM                          100           //物品背包的最大上限
+#define ITEMPACKNUM                           8            //物品背包的最大上限
+#define ITEMPACKTWONUM                        2            //物品背包第二维的上限
+#define FRIENDARRAYNUM                        30           //好友列表上限
+#define HORSEPACKNUM                          100          //马背包的最大上限
+#define DECORATIONPACKNUM                     100          //马背包的最大上限
+
+
+#define HORSELISTNUM                          100          //马编号上限
+#define BUILDLISTNUM                          20           //建筑物编号上限
+#define ITEMLISTNUM                           50           //道具编号上限
+
+
+//马场loading类型
+#define FARMLOADINGTYPE_PROGRESS              0            //滚动条样式的loading
+
+
+
+//训练场格子的数量上限
+#define TRAININGFIELDARRAYNUM                 6
+
+
+
+#define FARMBUILDTYPE_HOME                    0            //自宅
+#define FARMBUILDTYPE_SHOP                    1            //商店
+#define FARMBUILDTYPE_TRAININGFIELD_SPEED     2            //速度训练场
+#define FARMBUILDTYPE_TRAININGFIELD_AGILE     3            //灵活训练场
+#define FARMBUILDTYPE_TRAININGFIELD_POWER     4            //力量训练场
+#define FARMBUILDTYPE_HORSEHOME               5            //马厩
+
+
+
+
+#define FARMMAPMOVEOFFSETH                    300           //农场镜头移动的偏移量
+#define FARMMAPMOVEOFFSETV                    240           //农场镜头移动的偏移量
+
+
+
+#define PLAYERTYPE_PLAYER                     0            //玩家
+#define PLAYERTYPE_FRIEND                     1            //好友
+
+#define HORSEIDTOTAL                          169          //马编号的长度
+#define RACECUPNUM                            65           //杯赛的数量
+
+
+
+//物品的编号
+#define ITEM_SANDWICH                         0            //三明治
+#define ITEM_STEAMEDBUNS                      1            //小笼包
+#define ITEM_HAMBURGER                        2            //汉堡包
+#define ITEM_RICEWITHCURRYBEEF                3            //咖喱牛肉饭
+#define ITEM_NOODLESWITHSEAFOOD               4            //大碗海鲜拉面
+#define ITEM_DOUBLECREAMCAKE                  5            //特级双层奶油蛋糕
+#define ITEM_SUSHISASHIMISET                  6            //高级刺身寿司套餐
+#define ITEM_DIAMOND                          7            //钻石
+
+
+
+//道具buff类型
+#define ITEMBUFFTYPE_SPEED                    0
+#define ITEMBUFFTYPE_AGILE                    1
+#define ITEMBUFFTYPE_POWER                    2
+#define ITEMBUFFTYPE_ALL                      3
+#define ITEMBUFFTYPE_MONEY                    4
+
+
+//增加属性类型
+#define ITEMBUFFTYPE_SPEED                    0            //速度
+#define ITEMBUFFTYPE_AGILE                    1            //灵活
+#define ITEMBUFFTYPE_POWER                    2            //力量
+#define ITEMBUFFTYPE_ALL                      3            //全属性
+#define ITEMBUFFTYPE_MONEY                    4            //比赛奖金
+
+
+//农场马的debuff状态
+#define FARMHORSEDEBUFF_SPEED                 0            //增加速度
+#define FARMHORSEDEBUFF_AGILE                 1            //增加灵活
+#define FARMHORSEDEBUFF_POWER                 2            //增加力量
+#define FARMHORSEDEBUFF_MONEY                 3            //增加比赛奖金
+
+
+//#define REWARDTYPE_GAMEMONEY                 0            //游戏金币
+//#define REWARDTYPE_DIAMOND                   1            //钻石
+//#define REWARDYTYPE_PLAYEREXP                2            //玩家声望
+//#define REWARDYTYPE_HORSEEXP                 3            //马的经验
+//#define REWARDYTYPE_ITEM                     4            //道具
+//#define REWARDYTYPE_HORSE                    5            //马
+//#define REWARDYTYPE_BUILD                    6            //建筑物
+//#define REWARDYTYPE_DECORATION               7            //装饰物
+
+
+
+#define REWARD_PLAYEREXP                     0            //玩家经验
+#define REWARD_GAMEMONEY                     1            //游戏金钱
+#define REWARD_DIAMOND                       2            //钻石
+#define REWARD_ITEM                          3            //钻石
+#define REWARD_HORSEEXP                      4            //马的经验
+
+
+
+#define MISSIONREWARDTYPE_EXP                 0            //声望
+#define MISSIONREWARDTYPE_MONEY               1            //游戏币
+#define MISSIONREWARDTYPE_DIAMOND             2            //钻石
+#define MISSIONREWARDTYPE_HORSE               3            //马
+#define MISSIONREWARDTYPE_FOOD                4            //食物
+#define MISSIONREWARDTYPE_DEC                 5            //装饰物
+
+
+#define debugState                            0
+
+
+
+#define GameMusicState                        "GameMusicState"
+
+#define FARMMAPLEVELTOTAL                     5
+
+#define PARTOFMAPWIDTH                        478
+
+
+#define PackageHorseDialogTag                 1352
+#define GameWithFriendHorseAlertTag           1353
+#define FightWithFriendEnterButtonTag         1354
+#define FarmStoreAlertViewTag                 1355
+//教学修改
+#define HorsePropertyDialogTag                1356
+#define TrainingModeSelectDialogTag           1357
+#define SMSDTrainingModeImageTag              1358
+#define PaymentRenterDialogTag                1359
+
+
+#endif /* defined(__SMSDX__GameData__) */

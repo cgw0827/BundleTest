@@ -1,0 +1,428 @@
+//
+//  Player.h
+//  SMSDX
+//
+//  Created by  陈广文 on 13-3-1.
+//
+//
+
+#ifndef __SMSDX__Player__
+#define __SMSDX__Player__
+
+//#include <iostream>
+#include "BaseData.h"
+#include "GameData.h"
+#include "Role.h"
+#include "cocos2d.h"
+#include "Define.h"
+USING_NS_CC;
+class FarmNpc ;
+class FarmHorse;
+class FarmBuild;
+class FarmDecoration;
+class GameTimer;
+class FarmHorseAI;
+class FriendData;
+class  Player :public Role {
+    
+//    long long versionId_;
+     CC_SYNTHESIZE(long long, versionId_, VersionId);//版本标号
+//    int farmMapLevelTotal_;             //马场地图等级上限
+    
+     CC_SYNTHESIZE(int, farmMapLevelTotal_, FarmMapLevelTotal);//版本标号
+    int experience_[3];                 //声望（0：当前声望   1：升级所需声望    2：增加声望的百分比）
+    long long gameMoney_[3];            //游戏金币(0：当前金钱数量 1：历史最高金额  2：增加奖金的百分比)
+//    long long diamond_;                 //钻石
+    
+    CC_SYNTHESIZE(long long, diamond_, Diamond);//版本标号
+//    int allHorseExpIncrease_,           //马场中所有的马经验增加的百分比
+//    allHorseHealthIncrease_,            //马场中所有的马健康度的增加值
+//    allHorseVitalityIncrease_;          //马厩恢复体力的增加值
+     CC_SYNTHESIZE(int, allHorseExpIncrease_, AllHorseExpIncrease);
+     CC_SYNTHESIZE(int, allHorseHealthIncrease_, AllHorseHealthIncrease);
+     CC_SYNTHESIZE(int, allHorseVitalityIncrease_, AllHorseVitalityIncrease);
+    int horseHomeNum_[3];               //马场中马厩的数量（0：马场中当前马厩的数量    1：马场的马厩正常数量上限  2：附加的数量）
+    Short1DArray horseHaveState_;       //拥有马的状态（0：没得到过   1：有或有过）
+//    GameTimer *gameTimer_;              //游戏在线时间计算器
+    
+     CC_SYNTHESIZE_RETAIN(GameTimer*, gameTimer_, GameTimer);
+//    BOOL isOpenEverydayTip_;            //是否开启每日提示功能
+    CC_SYNTHESIZE(BOOL, isOpenEverydayTip_, IsOpenEverydayTip);
+    
+    Short1DArray matchState_;           //比赛的状态（0：未开启   1：开启   2：夺冠）
+//    int isTrainingSell_;                //训练场是否卖出
+     CC_SYNTHESIZE(int, isTrainingSell_, IsTrainingSell);
+//    NSMutableArray *friendArray_;       //拥有的好友集合
+//    NSMutableArray *removeDataArray_;
+//    NSMutableArray *removeFarmDataArray_;
+//    NSMutableArray *saveHorseArray_;
+    CC_SYNTHESIZE_RETAIN(CCArray*, friendArray_, FriendArray);
+    CC_SYNTHESIZE_RETAIN(CCArray*, removeDataArray_, RemoveDataArray);
+    CC_SYNTHESIZE_RETAIN(CCArray*, removeFarmDataArray_, RemoveFarmDataArray);
+    CC_SYNTHESIZE_RETAIN(CCArray*, saveHorseArray_, SaveHorseArray);
+    //未装配到马厩的马
+//    int horsePackIndex_;                //马背包的索引
+    //建筑物背包
+//    int buildPackIndex_;                //建筑物背包的索引
+     CC_SYNTHESIZE(int, horsePackIndex_, HorsePackIndex);
+     CC_SYNTHESIZE(int, buildPackIndex_, BuildPackIndex);
+//    Short1DArray itemPack_;             //物品
+    
+     CC_SYNTHESIZE(Short1DArray, itemPack_, ItemPack);//版本标号
+    byte addState_;                     //添加的状态
+    //装饰物背包
+//    int decorationPackIndex_;           //建筑物背包的索引
+     CC_SYNTHESIZE(int, decorationPackIndex_, DecorationPackIndex);
+//    NSDictionary *achievement_;         //成就记录
+    CC_SYNTHESIZE_RETAIN(CCDictionary*, achievement_, Achievement);
+    
+//    NSString *useItemStr_;
+    CC_SYNTHESIZE_RETAIN(CCString*, useItemStr_, UseItemStr);
+//    long long previousLoginDate;
+//    long long currentLoginDate;
+//    long long previousLogoutDate;
+    CC_SYNTHESIZE(long long, previousLoginDate, PreviousLoginDate);
+    CC_SYNTHESIZE(long long, currentLoginDate,CurrentLoginDate);
+    CC_SYNTHESIZE(long long, previousLogoutDate, PreviousLogoutDate);
+//    int ladderScore;
+//    int ladderRank;
+//    int daysContinuation;
+    CC_SYNTHESIZE(int, ladderScore, LadderScore);
+    CC_SYNTHESIZE(int, ladderRank, LadderRank);
+    CC_SYNTHESIZE(int, daysContinuation, DaysContinuation);
+//    BOOL isPlayerLevelUp_;
+//    BOOL isGainNewHorse_;
+    CC_SYNTHESIZE(BOOL, isPlayerLevelUp_, IsPlayerLevelUp);
+    CC_SYNTHESIZE(BOOL, isGainNewHorse_, IsGainNewHorse);
+//    NSMutableArray* newHorseIndexes_;
+//    NSMutableArray* newCupIndexes_;
+    CC_SYNTHESIZE(CCArray*, newHorseIndexes_, NewHorseIndexes);
+    CC_SYNTHESIZE(CCArray*, newCupIndexes_, NewCupIndexes);
+//    int maxHorseSqlKey;
+//    int maxBuildSqlKey;
+//    int maxDecorationSqlKey;
+    
+//    int currentExpInSum;
+//    int needExpInSum;
+    CC_SYNTHESIZE(int, currentExpInSum, CurrentExpInSum);
+    CC_SYNTHESIZE(int, needExpInSum, NeedExpInSum);
+    CC_SYNTHESIZE(int, maxHorseSqlKey, MaxHorseSqlKey);
+    CC_SYNTHESIZE(int, maxBuildSqlKey, MaxBuildSqlKey);
+    CC_SYNTHESIZE(int, maxDecorationSqlKey, MaxDecorationSqlKey);
+public:
+    void newPlayerData();
+    void process();
+    void addExpWithIndex(int index,int value ,BOOL state);
+    void checkLevelUp();
+    void setNeedExp();
+    void setExpWithIndex(int index,int value);
+    int expWithIndex(int index);
+    void levelUp();
+    void checkMapIncrease(BOOL state);
+    void setPlayerLevel(int level,BOOL state);
+    void setHorseNumTotal();
+    BOOL isHorseHomeFull();
+//    void setNeedExp();
+    int getexp(int level);
+    void setGameMoneyWithIndex(int index,long long value);
+    long long gameMoneyWithIndex(int index);
+    BOOL isHaveGameMoney(long long value);
+    void raceAddGameMoneyWithValue(int value,int addValue,BOOL state);
+    void addGameMoneyWithIndex(int index,long long value,BOOL state);
+    void addDiamond(long long value);
+    BOOL isHaveDiamond(long long value);
+    bool init();
+    void addHorseArray(FarmHorse * value);
+    void reduceHorseArrayWithIndex(int index);
+    void reduceHorseArrayWithNpc(FarmHorse * horse);
+    void addBuildArray(FarmBuild * value);
+    void reduceBuildArrayWithIndex(int index);
+    void reduceBuildArrayWithNpc(FarmBuild * build);
+    void addDecorationArray(FarmDecoration * value);
+    void reduceDecorationArrayWithIndex(int index);
+    void reduceDecorationArrayWithNpc(FarmDecoration *dec);
+    int getDecorationMoneyWithState(int state,FarmDecoration * decoration);
+    
+    void addItemPack(int itemname,int addnum);
+    int reduceItem(int itemname,int reducenum);
+    int getItemNumWithName(int name);
+    int getitemWithIndex(int index);
+    int getItemMoneyWithState(int state ,int itemname);
+    int getHorseMoneyWithState(int state,FarmHorse * horse);
+    int getPackPos(Short2DArray data,byte name,int length);
+    void getItemPack();
+    void getBuildPack();
+    BOOL addBuildPack(FarmBuild *build);
+    void reduceBuildPack(int index);
+    int getBuildMoneyWithState(int state,FarmBuild * build);
+    
+    void gameTimeProcess();//游戏时间逻辑
+    
+    void changeFarmMapLevel(int value);
+    BOOL addHorsePack(FarmHorse * horse);
+    void reduceHorsePack(int index);
+    void reduceHorsePackWithHorse(FarmHorse * horse);
+    BOOL addDecorationPack(FarmDecoration *horse);
+    void reduceDecorationPackWithIndex(int index);
+    void reduceDecorationPackWithNpc(FarmDecoration *dec);
+    
+    void newFarmBuildWithId(int buildId,int level,CCPoint pos,int faceto,FarmHorse *horse);
+    void LoadFarmBuildWithId(int buildId,int level,CCPoint pos,int faceto,int npcid);
+    void newFarmHorseWithId(int horseId,CCString *name,int level,int age);
+    FarmHorse * getHorseWithNpcId(int npcid);
+    void setHorseHaveStateWithId(int horseId,BOOL sqlState);
+    Short1DArray horseHaveState();
+    
+    CCArray * itemPackToArray();
+    
+    void newFarmDecorationWithId(int buildId,CCPoint pos,int faceto);
+    void LoadFarmBuildWithId(int buildId,CCPoint pos,int faceto,int npcid);
+    
+    
+    BOOL isHaveSuitableHorseHome(FarmHorse *horse);
+    void selectAvailableHorseHome();
+    void returnToNormalState();
+    int useItem(int itemname,FarmHorse *horse);
+    BOOL isHaveDecoration(FarmDecoration *decoration);
+    void addHorseHomeNumWithIndex(int index,int value,BOOL state);
+    void setHorseHomeNumWithIndex(int index,int value);
+    int horseHomeNumWithIndex(int index);
+    
+    void clearHorse(FarmHorse *horse);
+    void addAllHorseExpIncrease(int value,BOOL state);
+    void addAllHorseHealthIncrease(int value,BOOL state);
+    void addAddVitalityRecoveryValue(int value,BOOL state);
+    
+    int isHealthOfHorse(int value);
+    int isVitalityOfHorse(int value);
+    
+    Short1DArray matchState();
+    void setMatchStateWithId(int matchId,int state,BOOL sqlState);
+    
+    BOOL isCanFarmExpansion();
+    
+    int getBuyMoneyTypeWithId(int commodityId,int commodityType);
+    int getBuyMoneyWithId(int commodityId,int commodityType);
+    void buyCommodityWithId(int commodityId,int commodityType,int num);
+    void buyCommodityWithId(int commodityId,int commodityType,int num,FarmNpc*npc);
+    
+    BOOL isHaveMoneyWithId(int commodityId,int commodityType,int num);
+    int getSellMoneyWithId(int commodityId,int commodityType);
+    void sellCommodityWithId(int commodityId,int commodityType,int num);
+    void buildUpGradeWithId(int buildId,int buildLevel);
+    int isHaveMoneyToUpGradeWithId(int buildId,int buildLevel);
+    
+    FarmBuild * getFarmBuildWithId(int buildId);
+    void addFriendWithGameId(CCString * gameId,CCString * name,int level,int iconId);
+    void removeFriendWithIndex(int index);
+    void removeAllRemoveDataArray();
+    void addRemoveFarmDataArray(int npcKey,int sqlKey);
+    void checkAndRemoveFarmData(int npcKey,int sqlKey);
+    CCArray *getRemoveFarmDataWithType(int type);
+    void removeAllRemoveFarmDataArray();
+    void removeFriend(FriendData* friendData_);
+    int getArrayLength(CCArray * array0,CCArray *array1);
+    int getLastHorseKey(CCArray *array0,CCArray *array1);
+    CCArray *getRemoveDataWithType(int type);
+    void addRemoveDataArray(int npcKey,int sqlKey);
+    
+    CCArray *getHorseHomeAvailableHorse(int level);
+    BOOL isHaveTrainingWithId(int buildId);
+    
+    void handleTimeWithResume();
+    void handleFarmDecorationTime();
+    void handleFarmBuildTime();
+    
+    FarmHorse *getHorseWithSqlKey(int sqlKey);
+    FarmHorse *getHorseFormPackWithSqlKey(int sqlKey);
+    void openShowMatch(BOOL state);
+    void openShowMatchWithIndex(int index,BOOL state);
+    void getFarmNpcMaxSqlKey();
+    
+    void addHorsePackWithPaixu(FarmHorse * horse);
+    
+    int getNumOfHorseWithQuality(int quality);
+    int getTapLevelOfHorseArray();
+    int getTapLevelOfTraining();
+    int getNumOfHaveHorse();
+    
+    CCArray *getFarmBuffArray();
+    void addFriendWithGameID(CCString* gameId,CCArray* contents);
+    void removeFriendWithID(CCString*friendId);
+    void setLocalNotification();
+
+};
+//@property int currentExpInSum,needExpInSum;
+//@property int maxHorseSqlKey,maxBuildSqlKey,maxDecorationSqlKey;
+//@property (nonatomic,assign) NSMutableArray *newHorseIndexes;
+//@property (nonatomic,assign) NSMutableArray *newCupIndexes;
+//@property (nonatomic, readwrite) BOOL isPlayerLevelUp,isGainNewHorse;
+//@property int daysContinuation;
+//@property int ladderScore;
+//@property int ladderRank;
+//@property long long previousLoginDate,previousLogoutDate;
+//@property long long currentLoginDate;
+//@property (nonatomic, readwrite) long long versionId;
+//@property (nonatomic, readwrite, assign) NSString* useItemStr;
+//@property (nonatomic, readwrite) long long diamond;
+//@property (nonatomic, readwrite) int farmMapLevelTotal;
+//@property (nonatomic, readonly) Short1DArray itemPack;
+
+//@property (nonatomic, readwrite) BOOL isOpenEverydayTip;
+//@property (nonatomic, assign) NSDictionary* achievement;
+//@property (nonatomic, readwrite) int horsePackIndex;
+//@property (nonatomic, readwrite) int buildPackIndex;
+//@property (nonatomic, readwrite) int decorationPackIndex;
+//@property (nonatomic, readwrite) int allHorseExpIncrease;
+//@property (nonatomic, readwrite) int allHorseHealthIncrease;
+//@property (nonatomic, readwrite) int allHorseVitalityIncrease;
+//@property (nonatomic, readwrite) int isTrainingSell;
+//@property (nonatomic, readwrite, assign) GameTimer *gameTimer;
+//@property (nonatomic, readwrite, assign) NSMutableArray* friendArray;
+//@property (nonatomic, readwrite, assign) NSMutableArray* removeDataArray;
+//@property (nonatomic, readwrite, assign) NSMutableArray *removeFarmDataArray;
+//@property (nonatomic, readwrite, assign) NSMutableArray *saveHorseArray;
+
+
+//-(void)newPlayerData;
+//-(void)process;
+//-(void)addExpWithIndex:(int)index value:(int)value state:(BOOL)state;
+//-(void)checkLevelUp;
+//-(void)setNeedExp;
+//-(void)setExpWithIndex:(int)index value:(int)value;
+//-(int)expWithIndex:(int)index;
+//-(void)levelUp;
+//-(void)checkMapIncrease:(BOOL)state;
+//-(void)setPlayerLevel:(int)level state:(BOOL)state;
+//-(void)setHorseNumTotal;
+//-(BOOL)isHorseHomeFull;
+//-(void)setNeedExp;
+//-(int)getexp:(int)level;
+//-(void)setGameMoneyWithIndex:(int)index value:(long long)value;
+//-(long long)gameMoneyWithIndex:(int)index;
+//-(BOOL)isHaveGameMoney:(long long)value;
+//-(void)raceAddGameMoneyWithValue:(int)value addValue:(int)addValue state:(BOOL)state;
+//-(void)addGameMoneyWithIndex:(int)index value:(long long)value state:(BOOL)state;
+//-(void)addDiamond:(long long)value;
+//-(BOOL)isHaveDiamond:(long long)value;
+//
+//-(void)addHorseArray:(FarmHorse *)value;
+//-(void)reduceHorseArrayWithIndex:(int)index;
+//-(void)reduceHorseArrayWithNpc:(FarmHorse *)horse;
+//-(void)addBuildArray:(FarmBuild *)value;
+//-(void)reduceBuildArrayWithIndex:(int)index;
+//-(void)reduceBuildArrayWithNpc:(FarmBuild *)build;
+//-(void)addDecorationArray:(FarmDecoration *)value;
+//-(void)reduceDecorationArrayWithIndex:(int)index;
+//-(void)reduceDecorationArrayWithNpc:(FarmDecoration *)dec;
+//-(int)getDecorationMoneyWithState:(int)state decoration:(FarmDecoration *)decoration;
+//
+//-(void)addItemPack:(int)itemname num:(int)addnum;
+//-(int)reduceItem:(int)itemname reducenum:(int)reducenum;
+//-(int)getItemNumWithName:(int)name;
+//-(int)getitemWithIndex:(int)index;
+//-(int)getItemMoneyWithState:(int)state name:(int)itemname;
+//-(int)getHorseMoneyWithState:(int)state horse:(FarmHorse *)horse;
+//-(int)getPackPos:(Short2DArray)data name:(byte)name length:(int)length;
+//-(void)getItemPack;
+//-(void)getBuildPack;
+//-(BOOL)addBuildPack:(FarmBuild *)build;
+//-(void)reduceBuildPack:(int)index;
+//-(int)getBuildMoneyWithState:(int)state build:(FarmBuild *)build;
+//
+//-(void)gameTimeProcess;//游戏时间逻辑
+//
+//-(void)changeFarmMapLevel:(int)value;
+//-(BOOL)addHorsePack:(FarmHorse *)horse;
+//-(void)reduceHorsePack:(int)index;
+//-(void)reduceHorsePackWithHorse:(FarmHorse *)horse;
+//-(BOOL)addDecorationPack:(FarmDecoration *)horse;
+//-(void)reduceDecorationPackWithIndex:(int)index;
+//-(void)reduceDecorationPackWithNpc:(FarmDecoration *)dec;
+//
+//-(void)newFarmBuildWithId:(int)buildId Level:(int)level Pos:(CGPoint)pos FaceTo:(int)faceto Horse:(FarmHorse *)horse;
+//-(void)LoadFarmBuildWithId:(int)buildId Level:(int)level Pos:(CGPoint)pos FaceTo:(int)faceto NpcId:(int)npcid;
+//-(void)newFarmHorseWithId:(int)horseId Name:(NSString *)name Level:(int)level Age:(int)age;
+//-(FarmHorse *)getHorseWithNpcId:(int)npcid;
+//-(void)setHorseHaveStateWithId:(int)horseId sqlState:(BOOL)sqlState;
+//-(Short1DArray)horseHaveState;
+//
+//-(NSMutableArray *)itemPackToArray;
+//
+//-(void)newFarmDecorationWithId:(int)buildId Pos:(CGPoint)pos FaceTo:(int)faceto;
+//-(void)LoadFarmBuildWithId:(int)buildId Pos:(CGPoint)pos FaceTo:(int)faceto NpcId:(int)npcid;
+//
+//
+//-(BOOL)isHaveSuitableHorseHome:(FarmHorse *)horse;
+//-(void)selectAvailableHorseHome;
+//-(void)returnToNormalState;
+//-(int)useItem:(int)itemname horse:(FarmHorse *)horse;
+//-(BOOL)isHaveDecoration:(FarmDecoration *)decoration;
+//-(void)addHorseHomeNumWithIndex:(int)index value:(int)value state:(BOOL)state;
+//-(void)setHorseHomeNumWithIndex:(int)index value:(int)value;
+//-(int)horseHomeNumWithIndex:(int)index;
+//
+//-(void)clearHorse:(FarmHorse *)horse;
+//-(void)addAllHorseExpIncrease:(int)value state:(BOOL)state;
+//-(void)addAllHorseHealthIncrease:(int)value state:(BOOL)state;
+//-(void)addAddVitalityRecoveryValue:(int)value state:(BOOL)state;
+//
+//-(int)isHealthOfHorse:(int)value;
+//-(int)isVitalityOfHorse:(int)value;
+//
+//-(Short1DArray)matchState;
+//-(void)setMatchStateWithId:(int)matchId state:(int)state sqlState:(BOOL)sqlState;
+//
+//-(BOOL)isCanFarmExpansion;
+//
+//-(int)getBuyMoneyTypeWithId:(int)commodityId type:(int)commodityType;
+//-(int)getBuyMoneyWithId:(int)commodityId type:(int)commodityType;
+//-(void)buyCommodityWithId:(int)commodityId type:(int)commodityType num:(int)num;
+//-(void)buyCommodityWithId:(int)commodityId type:(int)commodityType num:(int)num FarmNpc:(FarmNpc*)npc;
+//
+//-(BOOL)isHaveMoneyWithId:(int)commodityId type:(int)commodityType num:(int)num;
+//-(int)getSellMoneyWithId:(int)commodityId type:(int)commodityType;
+//-(void)sellCommodityWithId:(int)commodityId type:(int)commodityType num:(int)num;
+//-(void)buildUpGradeWithId:(int)buildId level:(int)buildLevel;
+//-(int)isHaveMoneyToUpGradeWithId:(int)buildId level:(int)buildLevel;
+//
+//-(FarmBuild *)getFarmBuildWithId:(int)buildId;
+//-(void)addFriendWithGameId:(NSString *)gameId name:(NSString *)name level:(int)level iconId:(int)iconId;
+//-(void)removeFriendWithIndex:(int)index;
+//-(void)removeAllRemoveDataArray;
+//-(void)addRemoveFarmDataArray:(int)npcKey sqlKey:(int)sqlKey;
+//-(void)checkAndRemoveFarmData:(int)npcKey sqlKey:(int)sqlKey;
+//-(NSMutableArray *)getRemoveFarmDataWithType:(int)type;
+//-(void)removeAllRemoveFarmDataArray;
+//-(void)removeFriend:(FriendData*)friendData_;
+//-(int)getArrayLength:(NSMutableArray *)array0 array1:(NSMutableArray *)array1;
+//-(int)getLastHorseKey:(NSMutableArray *)array0 array1:(NSMutableArray *)array1;
+//-(NSMutableArray *)getRemoveDataWithType:(int)type;
+//-(void)addRemoveDataArray:(int)npcKey sqlKey:(int)sqlKey;
+//
+//-(NSMutableArray *)getHorseHomeAvailableHorse:(int)level;
+//-(BOOL)isHaveTrainingWithId:(int)buildId;
+//
+//-(void)handleTimeWithResume;
+//-(void)handleFarmDecorationTime;
+//-(void)handleFarmBuildTime;
+//
+//-(FarmHorse *)getHorseWithSqlKey:(int)sqlKey;
+//-(FarmHorse *)getHorseFormPackWithSqlKey:(int)sqlKey;
+//-(void)openShowMatch:(BOOL)state;
+//-(void)openShowMatchWithIndex:(int)index state:(BOOL)state;
+//-(void)getFarmNpcMaxSqlKey;
+//
+//-(void)addHorsePackWithPaixu:(FarmHorse *)horse;
+//
+//-(int)getNumOfHorseWithQuality:(int)quality;
+//-(int)getTapLevelOfHorseArray;
+//-(int)getTapLevelOfTraining;
+//-(int)getNumOfHaveHorse;
+//
+//-(NSMutableArray *)getFarmBuffArray;
+//-(void)addFriendWithGameID:(NSString*)gameId Contents:(NSMutableArray*)contents;
+//-(void)removeFriendWithID:(NSString*)friendId;
+//-(void)setLocalNotification;
+
+#endif /* defined(__SMSDX__Player__) */

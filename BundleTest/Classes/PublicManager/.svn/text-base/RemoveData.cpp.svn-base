@@ -1,0 +1,29 @@
+//
+//  RemoveData.cpp
+//  SMSDX
+//
+//  Created by  陈广文 on 13-2-28.
+//
+//
+
+#include "RemoveData.h"
+USING_NS_CC;
+RemoveData* RemoveData::removeDataWithSqlKey(int sqlKey,int npcKey)
+{
+    RemoveData* temp=new RemoveData();
+    temp->initRemoveDataWithSqlKey(sqlKey, npcKey);
+    temp->autorelease();
+    return temp;
+//    return [[[self alloc] initRemoveDataWithSqlKey:sqlKey npcKey:npcKey] autorelease];
+}
+
+
+void RemoveData::initRemoveDataWithSqlKey(int sqlKey,int npcKey)
+{
+//    if (self == [super init]) {
+        sqlKey_ = sqlKey;
+        npcKey_ = npcKey;
+//    }
+//    return self;
+}
+

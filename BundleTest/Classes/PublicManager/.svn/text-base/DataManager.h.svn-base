@@ -1,0 +1,173 @@
+//
+//  DataManager.h
+//  SMSDX
+//
+//  Created by  陈广文 on 13-2-28.
+//
+//
+
+#ifndef __SMSDX__DataManager__
+#define __SMSDX__DataManager__
+
+#include <iostream>
+#include "BaseData.h"
+#include "cocos2d.h"
+#include "Define.h"
+USING_NS_CC;
+
+typedef enum
+{
+    MainMenuState = 0,
+    FarmState,
+    MatchState,
+    LoadingState,
+    SelectMatchState,
+}GameState;
+
+
+class Player;
+class Friend;
+class FarmHorse;
+class DailyAward;
+
+class DataManager :public CCObject{
+//    GameState gameState_;
+//    Player *player_;                       //玩家对象
+//    Friend *friends_;
+//    NSString *gameId_;                     //游戏唯一ID
+//    int saveState_;                        //存档状态（0：没存档   1：有存档）
+//    DailyAward *dailyAward_;               //每日奖励
+    
+//    NSMutableArray *shopBuildArray_;       //商店里建筑物数组
+//    NSMutableArray *shopDecorationArray_;  //商店里装饰物的数组
+//    NSMutableArray *shopHorseArray_;       //商店里马的数据
+//    NSMutableArray *shopItemArray_;        //商店里道具的数组
+//    NSMutableArray *shopDiamondArray_;     //商店里钻石的数组
+    
+//    CADisplayLink *time_;
+//    CCTimer
+    CCTimer*time_;
+//    long long landingTime_;                //游戏登陆时间
+    
+//    BOOL isLoadGame_;                      //是否读取进度
+    
+//    short comeBackFromMatchType_;             //是否从赛场回来
+//    BOOL isNotShowDialog_;
+//    BOOL isShowingDialog_;                 //是否正在显示弹出框
+//    BOOL isNewGame_;
+    
+    CC_SYNTHESIZE(GameState, gameState_, GameState);
+    
+    CC_SYNTHESIZE(Player*, player_, Player);
+    
+    CC_SYNTHESIZE(Friend*, friends_, Friends);
+    
+    CC_SYNTHESIZE(CCString*, gameId_, GameId);
+    
+    CC_SYNTHESIZE(int, saveState_, SaveState);
+    
+    CC_SYNTHESIZE(long long, landingTime_, LandingTime);
+    
+    CC_SYNTHESIZE(DailyAward *, dailyAward_, DailyAward);
+    
+    CC_SYNTHESIZE(BOOL, isLoadGame_, IsLoadGame);
+    
+    CC_SYNTHESIZE(short, comeBackFromMatchType_, ComeBackFromMatchType);
+    
+    CC_SYNTHESIZE(BOOL, isNotShowDialog_, IsNotShowDialog);
+    
+    CC_SYNTHESIZE(BOOL , isShowingDialog_, IsShowingDialog);
+    
+    CC_SYNTHESIZE(BOOL , isNewGame_, IsNewGame);
+    
+    CC_SYNTHESIZE(CCArray*, shopBuildArray_, ShopBuildArray);
+    
+     CC_SYNTHESIZE(CCArray*, shopDecorationArray_, ShopDecorationArray);
+    
+     CC_SYNTHESIZE(CCArray*, shopHorseArray_, ShopHorseArray);
+    
+     CC_SYNTHESIZE(CCArray*, shopItemArray_, ShopItemArray);
+      CC_SYNTHESIZE(CCArray*, shopDiamondArray_, ShopDiamondArray);
+    
+    CC_SYNTHESIZE(Short2DArray, raceCheckData_, RaceCheckData);
+    
+public:
+    long millisecondNow();
+    static DataManager * sharedDataManager();
+    static void clearDataManager();
+    void initShopArray();
+    void playerProcess();
+    CFTimeInterval dtTime();
+    void gameRun(float ft);
+    void loadGame();
+    void saveGame();
+    void createGameSql();
+    void newGame();
+    void newPlayer();
+    void newFriend();
+    void cleanFriend();
+    void loadFriend(CCString * name,CCString * gameId,int iconId ,int level,int mapId,int mapLevel,CCArray * horseArray,CCArray *buildArray,CCArray * decorationArray);
+    void initGameData();
+    void initMissionData();
+    bool init();
+    void removeShopBuildArrayAtIndexes(int index);
+    void removeAllShopBuildArray();
+    void buyHorseToPack(FarmHorse *horse);
+    CCString * setHorseName();
+    void setGameLandingTime();
+    void changeGameState(GameState state);
+    int getCurrentDay();
+    void cleanShopArray();
+    void restartGame();
+};
+
+//@property (nonatomic, readwrite) GameState gameState;
+//@property (nonatomic, readonly) Short2DArray raceCheckData;
+//@property (nonatomic, assign) Player *player;
+//@property (nonatomic, assign) Friend *friends;
+//@property (nonatomic, assign) NSString *gameId;
+//@property (nonatomic, assign) NSMutableArray *shopBuildArray;
+//@property (nonatomic, assign) NSMutableArray *shopDecorationArray;
+//@property (nonatomic, assign) NSMutableArray *shopHorseArray;
+//@property (nonatomic, assign) NSMutableArray *shopItemArray;
+//@property (nonatomic, assign) NSMutableArray *shopDiamondArray;
+//@property (nonatomic, readwrite) int saveState;
+//@property (nonatomic, readwrite) long long landingTime;
+//@property (nonatomic, assign) DailyAward *dailyAward;
+//@property (nonatomic, assign) BOOL isLoadGame;
+//@property (nonatomic, assign) short comeBackFromMatchType;
+//@property (nonatomic, assign) BOOL isNotShowDialog;
+//@property (nonatomic, assign) BOOL isShowingDialog;
+//@property (nonatomic, assign) BOOL isNewGame;
+
+
+
+//+(DataManager *)sharedDataManager;
+//+(void)clearDataManager;
+//-(void)initShopArray;
+//-(void)playerProcess;
+//-(CFTimeInterval)dtTime;
+//
+//-(void)loadGame;
+//-(void)saveGame;
+//-(void)createGameSql;
+//-(void)newGame;
+//-(void)newPlayer;
+//-(void)newFriend;
+//-(void)cleanFriend;
+//-(void)loadFriend:(NSString *)name gameId:(NSString *)gameId iconId:(int)iconId level:(int)level mapId:(int)mapId mapLevel:(int)mapLevel horseArray:(NSMutableArray *)horseArray buildArray:(NSMutableArray *)buildArray decorationArray:(NSMutableArray *)decorationArray;
+//-(void)initGameData;
+//-(void)initMissionData;
+//
+//-(void)removeShopBuildArrayAtIndexes:(int)index;
+//-(void)removeAllShopBuildArray;
+//-(void)buyHorseToPack:(FarmHorse *)horse;
+//-(NSString *)setHorseName;
+//-(void)setGameLandingTime;
+//-(void)changeGameState:(GameState)state;
+//-(int)getCurrentDay;
+//-(void)cleanShopArray;
+//-(void)restartGame;
+
+
+#endif /* defined(__SMSDX__DataManager__) */

@@ -1,0 +1,93 @@
+//
+//  Role.h
+//  SMSDX
+//
+//  Created by  陈广文 on 13-2-28.
+//
+//
+
+#ifndef __SMSDX__Role__
+#define __SMSDX__Role__
+
+#include <iostream>
+#include "cocos2d.h"
+USING_NS_CC;
+
+class FarmHorse;
+class FarmBuild;
+class FarmDecoration;
+class Role :public CCObject{
+//    int playerIconId_;                  //玩家头像id
+//    int playerType_;                    //玩家类型
+    
+//    NSString *gameCenterName_;          //存档名称
+//    NSString *gameId_;                  //游戏id
+//    NSString *macId_;                   //mac地址
+//    long long gameIdNum_;               //游戏id数字类型
+    
+    
+//    NSString *name_;                    //名字
+    
+//    int level_,                         //等级
+//    farmMapId_,                         //马场地图id
+//    farmMapLevel_;                      //当前马场地图等级
+    
+//    NSMutableArray *horseArray_;        //拥有的马集合
+//    NSMutableArray *buildArray_;        //拥有的建筑物集合
+//    NSMutableArray *decorationArray_;   //拥有的装饰物集合
+    
+    
+//    NSMutableArray *horsePack_;
+//    NSMutableArray *buildPack_;
+//    NSMutableArray *decorationPack_;
+    CC_SYNTHESIZE(int, playerIconId_, PlayerIconId);
+    CC_SYNTHESIZE(int, playerType_, PlayerType);
+    CC_SYNTHESIZE(CCString*, gameCenterName_, GameCenterName);
+    CC_SYNTHESIZE(CCString*, gameId_, GameId);
+    CC_SYNTHESIZE(CCString*, name_, Name);
+    CC_SYNTHESIZE(CCString*, macId_, MacId);
+    CC_SYNTHESIZE(long long, gameIdNum_, GameIdNum);
+    
+    CC_SYNTHESIZE(int, level_, Level);
+    CC_SYNTHESIZE(int, farmMapId_, FarmMapId);
+    CC_SYNTHESIZE(int, farmMapLevel_, FarmMapLevel);
+    CC_SYNTHESIZE(CCArray*, horseArray_, HorseArray);
+    CC_SYNTHESIZE(CCArray*, buildArray_, BuildArray);
+
+    CC_SYNTHESIZE(CCArray*, decorationArray_, DecorationArray);
+
+    CC_SYNTHESIZE(CCArray*, horsePack_, HorsePack);
+
+    CC_SYNTHESIZE(CCArray*, buildPack_, BuildPack);
+
+    CC_SYNTHESIZE(CCArray*, decorationPack_, DecorationPack);
+public:
+    ~Role();
+    bool init();
+    int getTrainingLevelWithType(int type);
+    void cleanRole();
+    int getFarmHomeLevel();
+};
+
+//@property (nonatomic, readwrite) int playerIconId;
+//@property (nonatomic, readwrite) int playerType;
+//@property (nonatomic, readwrite, retain) NSString* gameCenterName;
+//@property (nonatomic, readwrite, retain) NSString* name;
+//@property (nonatomic, readwrite, retain) NSString* gameId;
+//@property (nonatomic, readonly) NSString* macId;
+//@property (nonatomic, readwrite) long long gameIdNum;
+
+//@property (nonatomic, readwrite) int level;
+//@property (nonatomic, readwrite) int farmMapId;
+//@property (nonatomic, readwrite) int farmMapLevel;
+//@property (nonatomic, readwrite, assign) NSMutableArray* horseArray;
+//@property (nonatomic, readwrite, assign) NSMutableArray* buildArray;
+//@property (nonatomic, readwrite, assign) NSMutableArray* decorationArray;
+
+//@property (nonatomic, readonly) NSMutableArray *buildPack;
+//@property (nonatomic, assign) NSMutableArray* horsePack;
+//@property (nonatomic, assign) NSMutableArray* decorationPack;
+//-(int)getTrainingLevelWithType:(int)type;
+//-(void)cleanRole;
+//-(int)getFarmHomeLevel;
+#endif /* defined(__SMSDX__Role__) */

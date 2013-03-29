@@ -1,0 +1,66 @@
+//
+//  GameTimer.cpp
+//  SMSDX
+//
+//  Created by  陈广文 on 13-3-1.
+//
+//
+
+#include "GameTimer.h"
+#include "DataManager.h"
+#include "Achievement.h"
+#include "Define.h"
+//@implementation GameTimer
+//
+//@synthesize gameTime = gameTime_;
+
+static GameTimer *gameTimer;
+
+GameTimer * GameTimer::sharedGameTimer()
+{
+    if (!gameTimer) {
+        gameTimer = new GameTimer();
+    }
+    return gameTimer;
+}
+
+
+void GameTimer::clearGameTimer()
+{
+    gameTimer-> release();
+    gameTimer = nil;
+}
+
+
+void GameTimer::setTime(long int time)
+{
+    gameTime_ = time;
+    delay_ = 0;
+}
+
+
+int GameTimer::hour()
+{
+    return gameTime_ / 3600;
+}
+
+int GameTimer::minute()
+{
+    return (gameTime_ % 3600) / 60;
+}
+
+int GameTimer::second()
+{
+    return (gameTime_ % 3600) % 60;
+}
+
+
+void GameTimer::process()
+{
+    delay_ +=DataManager::sharedDataManager()->dtTime();
+    if (delay_ >= 1.0f) {
+        delay_ = 0;
+        gameTime_ ++;
+        Achievement::sharedAchievement()->checkGameTime(gameTime_);
+    }
+}

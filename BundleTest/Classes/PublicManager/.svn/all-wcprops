@@ -1,0 +1,161 @@
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/cwa/!svn/ver/2901/derbytime/program/code/client/SMSDX/SMSDX/Classes/PublicManager
+END
+FriendData.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 101
+/svn/cwa/!svn/ver/2757/derbytime/program/code/client/SMSDX/SMSDX/Classes/PublicManager/FriendData.cpp
+END
+Player.h
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svn/cwa/!svn/ver/2872/derbytime/program/code/client/SMSDX/SMSDX/Classes/PublicManager/Player.h
+END
+Role.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svn/cwa/!svn/ver/2776/derbytime/program/code/client/SMSDX/SMSDX/Classes/PublicManager/Role.cpp
+END
+GameData.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svn/cwa/!svn/ver/2573/derbytime/program/code/client/SMSDX/SMSDX/Classes/PublicManager/GameData.cpp
+END
+IntermediateData.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 107
+/svn/cwa/!svn/ver/2833/derbytime/program/code/client/SMSDX/SMSDX/Classes/PublicManager/IntermediateData.cpp
+END
+DataManager.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 102
+/svn/cwa/!svn/ver/2935/derbytime/program/code/client/SMSDX/SMSDX/Classes/PublicManager/DataManager.cpp
+END
+BaseData.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svn/cwa/!svn/ver/2569/derbytime/program/code/client/SMSDX/SMSDX/Classes/PublicManager/BaseData.cpp
+END
+DataInputStream.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 106
+/svn/cwa/!svn/ver/3013/derbytime/program/code/client/SMSDX/SMSDX/Classes/PublicManager/DataInputStream.cpp
+END
+FriendData.h
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svn/cwa/!svn/ver/2844/derbytime/program/code/client/SMSDX/SMSDX/Classes/PublicManager/FriendData.h
+END
+Role.h
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svn/cwa/!svn/ver/2935/derbytime/program/code/client/SMSDX/SMSDX/Classes/PublicManager/Role.h
+END
+Friend.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svn/cwa/!svn/ver/2935/derbytime/program/code/client/SMSDX/SMSDX/Classes/PublicManager/Friend.cpp
+END
+GameData.h
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svn/cwa/!svn/ver/2573/derbytime/program/code/client/SMSDX/SMSDX/Classes/PublicManager/GameData.h
+END
+IntermediateData.h
+K 25
+svn:wc:ra_dav:version-url
+V 105
+/svn/cwa/!svn/ver/2833/derbytime/program/code/client/SMSDX/SMSDX/Classes/PublicManager/IntermediateData.h
+END
+DataManager.h
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svn/cwa/!svn/ver/2983/derbytime/program/code/client/SMSDX/SMSDX/Classes/PublicManager/DataManager.h
+END
+BaseData.h
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svn/cwa/!svn/ver/3014/derbytime/program/code/client/SMSDX/SMSDX/Classes/PublicManager/BaseData.h
+END
+GameTimer.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svn/cwa/!svn/ver/2829/derbytime/program/code/client/SMSDX/SMSDX/Classes/PublicManager/GameTimer.cpp
+END
+DataInputStream.h
+K 25
+svn:wc:ra_dav:version-url
+V 104
+/svn/cwa/!svn/ver/3013/derbytime/program/code/client/SMSDX/SMSDX/Classes/PublicManager/DataInputStream.h
+END
+Friend.h
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svn/cwa/!svn/ver/2935/derbytime/program/code/client/SMSDX/SMSDX/Classes/PublicManager/Friend.h
+END
+GameTimer.h
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svn/cwa/!svn/ver/2828/derbytime/program/code/client/SMSDX/SMSDX/Classes/PublicManager/GameTimer.h
+END
+CCBundle.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svn/cwa/!svn/ver/3013/derbytime/program/code/client/SMSDX/SMSDX/Classes/PublicManager/CCBundle.cpp
+END
+CountdownTimer.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 105
+/svn/cwa/!svn/ver/2935/derbytime/program/code/client/SMSDX/SMSDX/Classes/PublicManager/CountdownTimer.cpp
+END
+CCBundle.h
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svn/cwa/!svn/ver/3013/derbytime/program/code/client/SMSDX/SMSDX/Classes/PublicManager/CCBundle.h
+END
+CountdownTimer.h
+K 25
+svn:wc:ra_dav:version-url
+V 103
+/svn/cwa/!svn/ver/2776/derbytime/program/code/client/SMSDX/SMSDX/Classes/PublicManager/CountdownTimer.h
+END
+RemoveData.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 101
+/svn/cwa/!svn/ver/2776/derbytime/program/code/client/SMSDX/SMSDX/Classes/PublicManager/RemoveData.cpp
+END
+Player.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svn/cwa/!svn/ver/2901/derbytime/program/code/client/SMSDX/SMSDX/Classes/PublicManager/Player.cpp
+END
+RemoveData.h
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svn/cwa/!svn/ver/2776/derbytime/program/code/client/SMSDX/SMSDX/Classes/PublicManager/RemoveData.h
+END

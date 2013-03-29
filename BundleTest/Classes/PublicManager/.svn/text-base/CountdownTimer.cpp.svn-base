@@ -1,0 +1,108 @@
+//
+//  CountdownTimer.cpp
+//  SMSDX
+//
+//  Created by  陈广文 on 13-2-28.
+//
+//
+
+#include "CountdownTimer.h"
+#include "DataManager.h"
+#include "GameTeach.h"
+
+//@implementation CountdownTimer
+//
+//@synthesize isFinished = isFinished_;
+
+
+
+CountdownTimer* CountdownTimer::node()
+{
+    CountdownTimer* temp=new CountdownTimer();
+    temp->init();
+    temp->autorelease();
+    return temp;
+    
+//    return [[[self alloc] init] autorelease];
+}
+
+
+bool CountdownTimer::init()
+{
+//    if (self == [super init]) {
+        resetTime();
+//    }
+    return true;
+}
+
+
+int CountdownTimer::time()
+{
+    return time_;
+}
+
+
+int CountdownTimer::hour()
+{
+    return time_ / 3600;
+}
+
+
+int CountdownTimer::minute()
+{
+    return (time_ % 3600) / 60;
+}
+
+
+int CountdownTimer::second()
+{
+    return (time_ % 3600) % 60;;
+}
+
+
+BOOL CountdownTimer::isFinished()
+{
+    return isFinished_;
+}
+
+
+void CountdownTimer::setTime(int hour,int minute,int second)
+{
+    time_ = hour * 3600 + minute * 60 + second;
+    delay_ = 0;
+    isFinished_ = NO;
+}
+
+
+void CountdownTimer::setTime(long int time)
+{
+    time_ = time;
+    delay_ = 0;
+    isFinished_ = NO;
+}
+
+
+void CountdownTimer::resetTime()
+{
+    time_ = 0;
+    delay_ = 0;
+    isFinished_ = YES;
+}
+
+
+
+
+void CountdownTimer::process()
+{
+    if (!isFinished_) {
+        delay_ += DataManager::sharedDataManager()->dtTime();
+        if (delay_ >= 1.0f) {
+            delay_ = 0;
+            if (--time_ <= 0) {
+                resetTime();
+            }
+        }
+    }
+}
+
+

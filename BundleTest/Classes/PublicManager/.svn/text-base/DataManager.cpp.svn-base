@@ -1,0 +1,640 @@
+//
+//  DataManager.cpp
+//  SMSDX
+//
+//  Created by  陈广文 on 13-2-28.
+//
+//
+
+#include "DataManager.h"
+#include "Util.h"
+#include "Player.h"
+#include "FarmHorse.h"
+#include "FarmHorseHome.h"
+#include "FarmHome.h"
+#include "FarmShop.h"
+#include "FarmTrainingField.h"
+#include "FarmDecoration.h"
+#include "FarmItem.h"
+#include "MainMission.h"
+#include "DailyMission.h"
+#include "GameEvent.h"
+#include "FarmBuildData.h"
+#include "FarmDecorationData.h"
+#include "ItemData.h"
+#include "HorseData.h"
+#include "MatchData.h"
+#include "ObstacleData.h"
+#include "ShopData.h"
+#include "GamblingData.h"
+#include "SQLData.h"
+#include "EffectData.h"
+#include "MapData.h"
+#include "Friend.h"
+#include "PlayerData.h"
+#include "MissionData.h"
+#include "GameCenter.h"
+#include "DailyAward.h"
+#include "FriendFarmData.h"
+#include "LoadingLayer.h"
+#include "upGradeTishiData.h"
+#include "DailyAwardData.h"
+#include "Achievement.h"
+#include "AchievementData.h"
+#include "GestureData.h"
+#include "Constant.h"
+#include "cocos2d.h"
+#include "GameData.h"
+#include "BaseData.h"
+
+USING_NS_CC;
+static DataManager *dataManager_;
+
+DataManager *DataManager::sharedDataManager()
+{
+    if (!dataManager_) {
+        dataManager_ = new DataManager();
+        dataManager_->init();
+    }
+    return dataManager_;
+}
+
+
+
+void DataManager::clearDataManager()
+{
+    dataManager_-> release();
+    dataManager_ = nil;
+}
+
+
+bool DataManager::init()
+{
+//    if (self = [super init]) {
+         initGameData();
+        initShopArray();
+    GameEvent::sharedFarmGameEvent();
+    MainMission::sharedMainMission();
+        //        [Achievement sharedAchievement];
+//    time_ = CADisplayLink:: displayLinkWithTarget(self selector:@selector(gameRun)];
+    time_=CCTimer::timerWithTarget(this, schedule_selector(DataManager::gameRun));
+                                                  
+//        [time_ setFrameInterval:60 / GAME_FPS];
+    time_->setInterval(60/GAME_FPS);
+    
+
+//        time_->
+    
+//         [time_ addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+    
+                                                  
+                                                  player_ =new Player();
+                                                  player_->init();
+//                                                  [[Player alloc] init];
+                                                  friends_ =new Friend();
+                                                  friends_->init();
+                                                  dailyAward_ =new DailyAward();
+                                                  dailyAward_->init();
+//                                                  alloc] init];
+        comeBackFromMatchType_ = -1;
+//    }
+    return true;
+}
+
+
+void DataManager::logFarmNpcData()
+{
+    int index = 0;
+    for (int i=0; i<player->getHorseArray()->count(); i++) {
+        FarmHorse *horse=(FarmHorse *)player->getHorseArray()->objectAtIndex(i);
+        CCLog("马的编号 = %d",horse->getHorseId());
+        CCLog("-------------------index---------------------- = %d",index);
+        index ++;
+    }
+//    for (FarmHorse *horse in player_.horseArray) {
+//        NSLog(@"马的编号 = %d",horse.horseId);
+//        NSLog(@"-------------------index---------------------- = %d",index);
+//        index ++;
+//    }
+    index = 0;
+    for (int i=0; i<player->getBuildArray()->count(); i++) {
+        FarmBuild *build=(FarmBuild *)player->getBuildArray()->objectAtIndex(i);
+        CCLog("建筑物的类型 = %d",build->getBuildType());
+        CCLog("建筑物的等级 = %d",build->getBuildLevel());
+        CCLog("建筑物的朝向 = %d",build->getFaceTo());
+        CCLog("建筑物的x = %f",build->getFarmNpcTilePos().x);
+        CCLog("建筑物的y = %f",build->getFarmNpcTilePos().y);
+        if (build->getBuildType() == FARMBUILDTYPE_HORSEHOME) {
+            FarmHorseHome * fhh=(FarmHorseHome *)build;
+//            fhh->horse()->getSqlKey();
+            int key=fhh->horse()->getSqlKey();
+            CCLog("马的编号 = %d",key);
+        }
+        CCLog("-------------------index---------------------- = %d",index);
+        index ++;
+    }
+//    for (FarmBuild *build in player_.buildArray) {
+//        NSLog(@"建筑物的类型 = %d",build.buildType);
+//        NSLog(@"建筑物的等级 = %d",build.buildLevel);
+//        NSLog(@"建筑物的朝向 = %d",build.faceTo);
+//        NSLog(@"建筑物的x = %f",build.farmNpcTilePos.x);
+//        NSLog(@"建筑物的y = %f",build.farmNpcTilePos.y);
+//        if (build.buildType == FARMBUILDTYPE_HORSEHOME) {
+//            NSLog(@"马的编号 = %d",[(FarmHorseHome *)build horse].sqlKey);
+//        }
+//        NSLog(@"-------------------index---------------------- = %d",index);
+//        index ++;
+//    }
+    
+    index = 0;
+    for (int i=0; i<player->getdecorationArray()->count(); i++) {
+        FarmBuild *build=(FarmDecoration *)player->getdecorationArray()->objectAtIndex(i);
+        CCLog("装饰物的类型 = %d",build->getDecorationType());
+        CCLog("装饰物的朝向 = %d",build->getFaceTo());
+        CCLog("装饰物的x = %f",build->getFarmNpcTilePos().x);
+        CCLog("装饰物的y = %f",build->getFarmNpcTilePos().y);
+        CCLog("-------------------index---------------------- = %d",index);
+        index ++;
+    }
+//    for (FarmDecoration *build in player_.decorationArray) {
+//        NSLog(@"装饰物的类型 = %d",build.decorationType);
+//        NSLog(@"装饰物的朝向 = %d",build.faceTo);
+//        NSLog(@"装饰物的x = %f",build.farmNpcTilePos.x);
+//        NSLog(@"装饰物的y = %f",build.farmNpcTilePos.y);
+//        NSLog(@"-------------------index---------------------- = %d",index);
+//        index ++;
+//    }
+}
+
+
+void DataManager::loadGame()
+{
+//     SQLData* sqlData=SQLData::sharedSQLiteData();
+    //    sqlData-> loadVersionId();
+    //    sqlData-> loadGameMusicState();
+    //    sqlData-> loadPlayerBaseData();
+    //    sqlData-> loadHaveHorseState();
+    //    sqlData-> loadMatchState();
+    //    sqlData-> loadHorseArray();
+    //    sqlData-> loadBuildArray();
+    //    sqlData-> loadDecorationArray();
+    //    sqlData-> loadItemPack();
+    //    sqlData-> loadHorsePack();
+    //    sqlData-> loadBuildPack();
+    //    sqlData-> loadDecorationPack();
+    //    sqlData-> loadMainMission();
+    //    sqlData-> loadDailyMission();
+    //    sqlData-> loadSystemTime();
+    //    sqlData-> loadFarmEvent();
+    //    sqlData-> loadSystemInfo();
+    //    sqlData-> loadFriendInfo();
+    //    sqlData-> loadFriendMail();
+    //    sqlData-> loadFriendData();
+    //    sqlData-> loadRemoveData();
+    //    sqlData-> loadRemoveFarmData();
+    //    sqlData-> loadSystemDay();
+    //    sqlData-> loadAchievement();
+    player_ ->getFarmNpcMaxSqlKey();
+    isLoadGame_ = YES;
+    
+    if (debugState == 0) {
+        MainMission::sharedMainMission()->setMissionId(9);
+        MainMission::sharedMainMission()->setMissionState(1);
+        MainMission:: sharedMainMission()->setMissionPlan(0);
+    }
+    
+    if (MainMission::sharedMainMission->getMissionId() == 0) {
+        isNewGame_ = YES;
+    }
+    
+    //    [self logFarmNpcData];
+}
+
+
+void DataManager::createGameSql()
+{
+    SQLData* sqlData=SQLData::sharedSQLiteData();
+    sqlData-> createSaveState();
+    sqlData-> createVersionId();
+    sqlData-> createGameMusicState();
+    sqlData-> createPlayerBaseData();
+    sqlData-> createHaveHorseState();
+    sqlData-> createMatchState();
+    sqlData-> createHorseArray();
+    sqlData-> createBuildArray();
+    sqlData-> createDecorationArray();
+    sqlData-> createItemPack();
+    sqlData-> createHorsePack();
+    sqlData-> createBuildPack();
+    sqlData-> createDecorationPack();
+    sqlData-> createMainMission();
+    sqlData-> createDailyMission();
+    sqlData-> createSystemTime();
+    sqlData-> createFarmEvent();
+    sqlData-> createSystemInfo();
+    sqlData-> createFriendInfo();
+    sqlData-> createFriendMail();
+    sqlData-> createFriendData();
+    sqlData-> createRemoveData();
+    sqlData-> createRemoveFarmData();
+    sqlData-> createSystemDay();
+    sqlData-> createAchievement();
+}
+
+void DataManager::restartGame(){
+    
+    switch (DataManager::sharedDataManager()->getGameState()) {
+        case FarmState:
+        case LoadingState:
+        case SelectMatchState:
+            CCDirector:: sharedDirector()->end();
+            CCDirector:: sharedDirector()->runWithScene(LoadingLayer::loadGameState(GAMESTATE_FARM,11,0));
+            break;
+        case MatchState:
+            CCDirector:: sharedDirector()->end();
+            CCDirector:: sharedDirector()->runWithScene(LoadingLayer::loadGameState(GAMESTATE_RACE,12,0));
+            break;
+        case MainMenuState:
+            CCDirector:: sharedDirector()->startAnimation();
+            break;
+    }
+}
+
+
+void DataManager::saveGame()
+{   SQLData* sqlData=SQLData::sharedSQLiteData();
+    sqlData-> saveSaveState();
+    sqlData-> saveVersionId();
+    sqlData-> saveGameMusicState();
+    sqlData-> savePlayerBaseData();
+    sqlData-> saveHaveHorseState();
+    for (int i=0; i<player_->getHorsePack()->count(); i++) {
+        FarmHorse *horse=(FarmHorse *)player_->getHorsePack()->objectAtIndex(i);
+        player_->setHorseHaveStateWithId(horse->getHorseId(),YES);
+    }
+//    for (FarmHorse *horse in player_.horsePack) {
+//        [player_ setHorseHaveStateWithId:horse.horseId sqlState:YES];
+//    }
+    sqlData-> saveMatchState();
+    sqlData-> saveHorseArray();
+    sqlData-> saveBuildArray();
+    sqlData-> saveDecorationArray();
+    sqlData-> saveItemPack();
+    sqlData-> saveHorsePack();
+    sqlData-> saveBuildPack();
+    sqlData-> saveDecorationPack();
+    sqlData-> saveMainMission();
+    sqlData-> saveDailyMission();
+    sqlData-> saveSystemTime();
+    sqlData-> saveFarmEvent();
+    sqlData-> saveSystemDay();
+    sqlData-> saveAchievement();
+    player_-> getFarmNpcMaxSqlKey();
+    
+    //    [MainMission sharedMainMission].missionId = 4;
+    //    [MainMission sharedMainMission].missionState = 2;
+    //    [MainMission sharedMainMission].missionPlan = 0;
+//    if (debugState == 0) {
+//        [MainMission sharedMainMission].missionId = 9;
+//        [MainMission sharedMainMission].missionState = 1;
+//        [MainMission sharedMainMission].missionPlan = 0;
+//    }
+//    if ([MainMission sharedMainMission].missionId == 0) {
+//        isNewGame_ = YES;
+//    }
+//    
+    if (debugState == 0) {
+        MainMission::sharedMainMission()->setMissionId(9);
+        MainMission::sharedMainMission()->setMissionState(1);
+        MainMission:: sharedMainMission()->setMissionPlan(0);
+    }
+    
+    if (MainMission:: sharedMainMission->getMissionId() == 0) {
+        isNewGame_ = YES;
+    }
+}
+
+
+void DataManager::initMissionData()
+{
+    DailyMission:: sharedSubMission();
+}
+
+
+
+CFTimeInterval DataManager::dtTime()
+{
+    return time_->getInterval() * (60 / GAME_FPS);
+}
+
+
+void DataManager::gameRun(float ft)
+{
+    playerProcess();
+}
+
+
+void DataManager::playerProcess()
+{
+    player_ ->process();
+}
+
+
+
+
+void DataManager::initShopArray()
+{
+    shopBuildArray_ = new CCArray;
+    shopDecorationArray_ = new CCArray;
+    shopHorseArray_ =new CCArray;
+    shopItemArray_ = new CCArray;
+    shopDiamondArray_ = new CCArray;
+}
+
+
+
+void DataManager::removeShopBuildArrayAtIndexes(int index)
+{
+    shopBuildArray_-> removeObjectAtIndex(index);
+}
+
+
+void DataManager::removeAllShopBuildArray()
+{
+    shopBuildArray_-> removeAllObjects();
+}
+
+
+
+
+void DataManager::removeShopDecorationArrayAtIndexes(int index)
+{
+    shopDecorationArray_-> removeObjectAtIndex(index);
+}
+
+
+void DataManager::removeAllShopDecorationArray()
+{
+    shopDecorationArray_-> removeAllObjects();
+}
+
+
+
+void DataManager::removeShopHorseArrayAtIndexes(int index)
+{
+    shopHorseArray_ ->removeObjectAtIndex(index);
+}
+
+
+void DataManager::removeAllShopHorseArray()
+{
+    shopHorseArray_-> removeAllObjects();
+}
+
+
+
+void DataManager::removeShopItemArrayAtIndexes(int index)
+{
+    shopItemArray_ ->removeObjectAtIndex(index);
+}
+
+
+void DataManager::removeAllItemArray()
+{
+    shopItemArray_-> removeAllObjects();
+}
+
+
+
+
+void DataManager::removeShopDiamondArrayAtIndexes(int index)
+{
+    shopDiamondArray_ ->removeObjectAtIndex(index);
+}
+
+
+void DataManager::removeAllDiamondArray()
+{
+    shopDiamondArray_-> removeAllObjects();
+}
+
+
+void DataManager::changeGameState(GameState state)
+{
+    gameState_ = state;
+}
+
+
+
+DataManager::~DataManager()
+{
+    clearShort2DArray(&raceCheckData_);
+    
+    shopBuildArray_-> removeAllObjects();
+    shopBuildArray_-> release();
+    shopBuildArray_ = nil;
+    shopDecorationArray_ ->removeAllObjects();
+    shopDecorationArray_-> release();
+    shopDecorationArray_ = nil;
+    shopHorseArray_ ->removeAllObjects();
+    shopHorseArray_-> release();
+    shopHorseArray_ = nil;
+    shopItemArray_-> removeAllObjects();
+    shopItemArray_ ->release();
+    shopItemArray_ = nil;
+    shopDiamondArray_-> removeAllObjects();
+    shopDiamondArray_-> release();
+    shopDiamondArray_ = nil;
+    
+    player_-> release();
+    player_ = nil;
+    friends_ ->release();
+    friends_ = nil;
+    dailyAward_ ->release();
+    dailyAward_ = nil;
+//    [super dealloc];
+}
+
+
+
+
+void DataManager::newGame()
+{
+    newPlayer();
+    dailyAward_->setCurrentDays(getCurrentDay());
+    //    [self newFriend];
+}
+
+
+
+int a[10] = {153,154,155,156,157,158,161,164,167,168};
+void DataManager::newPlayer()
+{
+    player_->setVersionId(1);
+    player_->setPlayerType (PLAYERTYPE_PLAYER);
+    if (GameCenter:: sharedGameCenter()->getUserAuthenticated()) {
+        player_->setName(DataManager:: sharedDataManager()->getPlayer()->getGameCenterName());
+    } else {
+        player_->setName("player");
+    }
+    player_->setGameId("0");
+    player_->setPlayerLevel(0,NO);
+    
+    
+    //李总临时修改
+    player_-> setGameMoneyWithIndex(0,2000);
+    //    [player_ setGameMoneyWithIndex:0 value:2000000];
+    player_->setDiamond(0);
+    //    player_.diamond = 10000;
+    //    player_.level = 23;
+    //    [player_ newFarmBuildWithId:1 Level:2 Pos:ccp(5, 20) FaceTo:DIR_RIGHT Horse:nil];
+    //    [player_ newFarmBuildWithId:2 Level:2 Pos:ccp(14, 5) FaceTo:DIR_LEFT Horse:nil];
+    //     [player_ newFarmBuildWithId:3 Level:2 Pos:ccp(18, 5) FaceTo:DIR_LEFT Horse:nil];
+    //     [player_ newFarmBuildWithId:4 Level:2 Pos:ccp(22, 5) FaceTo:DIR_LEFT Horse:nil];
+    //李总临时修改
+    
+    
+    player_->setFarmMapId(0);
+    player_->setFarmMapLevel(0);
+    player_->setDaysContinuation(1);
+    
+    
+    player_ ->newFarmBuildWithId(0,0,ccp(7, 7),DIR_LEFT,nil);
+    
+    if (debugState == 0) {
+        FriendFarmData * ffd=FriendFarmData:: sharedFriendFarmData();
+        ffd-> initPlayerBaseData();
+       ffd->initPlayerFarmHorse();
+       ffd-> initPlayerFarmBuild();
+        //        ffd->initPlayerFarmDecoration();
+        //        player_-> setGameMoneyWithIndex(0,9999999999);
+        //        player_->setDiamond(9999999);
+        //        player_->setLevel(22);
+        //        player_->setFarmMapId( 0);
+        //        player_->setFarmMapLevel( 6);
+        //        player_ ->newFarmHorseWithId(0,"kobe",0,0);
+        //        player_ ->newFarmHorseWithId(1,"allen",0,0);
+        //        player_ ->newFarmHorseWithId(2,"ai",0,0);
+        //        player_ ->newFarmHorseWithId(3,"ao",0,0);
+        //        player_ ->newFarmBuildWithId(1,2,ccp(5, 20),DIR_RIGHT,nil);
+        //        player_ ->newFarmBuildWithId(2,0,ccp(14, 5),DIR_LEFT,nil);
+        //        player_ ->newFarmBuildWithId(5,0,ccp(6, 25),DIR_RIGHT,player_->getHorseArray()->objectAtIndex(0));
+//        player_ ->newFarmBuildWithId(5,0,ccp(6, 25),DIR_RIGHT,player_->getHorseArray()->objectAtIndex(1));
+//        player_ ->newFarmBuildWithId(5,0,ccp(6, 25),DIR_RIGHT,player_->getHorseArray()->objectAtIndex(2));
+//        player_ ->newFarmBuildWithId(5,0,ccp(6, 25),DIR_RIGHT,player_->getHorseArray()->objectAtIndex(3));
+    }
+    
+    player_-> newPlayerData();
+    
+}
+
+
+
+void DataManager::newFriend()
+{
+    friends_->setPlayerType(PLAYERTYPE_FRIEND);
+    friends_->setName("friend");
+    friends_->setGameId("5");
+    friends_->setPlayerIconId(1);
+    friends_->setLevel(5);
+    friends_->setFarmMapId(0);
+    friends_->setFarmMapLevel(1);
+}
+
+
+void DataManager::cleanFriend()
+{
+    friends_->setName(nil);
+    friends_->setGgameId(nil);
+    friends_->setPlayerIconId(0);
+    friends_->setLevel(0);
+    friends_->setFarmMapId(0);
+    friends_->setFarmMapLevel(0);
+    [friends_ ->cleanRole();
+}
+
+
+
+void DataManager::loadFriend(CCString * name,CCString * gameId,int iconId,int level,int mapId,int mapLevel,CCArray * horseArray,CCArray *buildArray,CCArray * decorationArray)
+{
+    friends_->setPlayerType(PLAYERTYPE_FRIEND);
+    friends_->setName(name);
+    friends_->setGameId(gameId);
+    friends_->setPlayerIconId(iconId);
+    friends_->setLevel(level);
+    friends_->setFarmMapId(mapId);
+    friends_->setFarmMapLevel(mapLevel);
+    friends_->setHorseArray(horseArray);
+    friends_->setBuildArray(buildArray);
+    friends_->setDecorationArray(decorationArray);
+}
+
+
+
+void DataManager::initGameData()
+{
+     Constant::sharedConstant();
+     FarmBuildData:: sharedFarmBuildData();
+     FarmDecorationData:: sharedFarmDecorationData();
+     HorseData:: sharedHorseData();
+     ItemData:: sharedItemData();
+     ObstacleData:: sharedObstacleData();
+     MatchData:: sharedMatchData();
+     ShopData:: sharedShopData();
+     GamblingData:: sharedGamblingData();
+     EffectData ::sharedEffectData();
+     MapData:: sharedMapData();
+     PlayerData:: sharedPlayerData();
+     MissionData:: sharedMissionData();
+     FriendFarmData:: sharedFriendFarmData();
+     DailyAwardData:: sharedDailyAwardData();
+     upGradeTishiData:: sharedEffectData();
+     AchievementData:: sharedAchievementData();
+     GestureData:: sharedGestureData();
+}
+
+
+
+void DataManager::buyHorseToPack(FarmHorse *horse)
+{
+    player_-> addGameMoneyWithIndex(0,-player_->getHorseMoneyWithState(0,horse),YES);
+    player_ addHorsePack(horse-> copy());
+     MainMission::sharedMainMission->checkMissionBuyHorse(horse);
+}
+
+
+
+CCString * DataManager::setHorseName()
+{
+    return "allen";
+}
+
+
+long DataManager::millisecondNow()
+     {
+     struct cocos2d::cc_timeval now;
+     cocos2d::CCTime::gettimeofdayCocos2d(&now, NULL);
+     return (now.tv_sec * 1000 + now.tv_usec / 1000);
+     }
+void DataManager::setGameLandingTime()
+{
+//    landingTime_ = [[NSDate date] timeIntervalSince1970];
+     landingTime_=millisecondNow();
+}
+
+
+int DataManager::getCurrentDay()
+{
+    long long currentSecond = millisecondNow();
+    return currentSecond / (60 * 60 * 24);
+}
+
+
+void DataManager::cleanShopArray()
+{
+    shopItemArray_-> removeAllObjects();
+    shopHorseArray_-> removeAllObjects();
+    shopBuildArray_-> removeAllObjects();
+    shopDecorationArray_-> removeAllObjects();
+}
+
