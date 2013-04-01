@@ -9,10 +9,11 @@
 #include "CCBundle.h"
 #include "DataInputStream.h"
 #include <string>
+#include "Define.h"
 USING_NS_CC;
 using namespace std;
 static CCBundle* myCCBundle;
-static std::string FILE_NAME[1]={"FarmEventTalkWord"};
+
 CCBundle* CCBundle::mainBundle(){
     if(!myCCBundle){
 //         CCLog("mainBundle  ");
@@ -25,7 +26,7 @@ CCBundle* CCBundle::mainBundle(){
 bool CCBundle::init(){
     
 //    CCLog("FILE_NAME->length() %d ",FILE_NAME->length());
-    for (int i=0; i<1; i++) {
+    for (int i=0; i<LEN; i++) {
         std::string fileName=FILE_NAME[i];
 //        CCLog("fileName  %s ",fileName.c_str());
         String1DArray tempArray=this->getStrArray(this->getString(fileName), "\n");
